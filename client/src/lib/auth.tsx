@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { User, mockUsers, mockProviders } from "./data";
+import { supabase } from "./supabase";
 
 type AuthContextType = {
   user: User | null;
@@ -40,6 +41,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         createdAt: new Date().toISOString()
       };
       setUser(newUser);
+      
+      // Also add to waitlist since this is a new mock user
+      try {
+        await supabase
+          .from('waitlist')
+          .insert([{ email, role: role || 'customer' }]);
+      } catch (err) {
+        console.error("Failed to add to waitlist", err);
+      }
+
       toast({
         title: "Welcome!",
         description: `Created new demo account for ${email}`,
@@ -62,6 +73,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     
     setUser(newUser);
+    
+    // Add to Supabase Waitlist for marketing
+    if (userData.email) {
+      try {
+        await supabase
+          .from('waitlist')
+          .insert([{ email: userData.email, role: userData.role || 'customer' }]);
+      } catch (err) {
+        console.error("Failed to add to waitlist", err);
+      }
+    }
+
     toast({
       title: "Account created",
       description: "Welcome to Servly!",
