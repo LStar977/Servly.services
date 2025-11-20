@@ -1,0 +1,315 @@
+Here’s a prompt you can paste straight into Replit’s AI builder to have it generate the **actual Servly product**, not just a landing page:
+
+---
+
+**Prompt for Replit AI: Build the Servly product**
+
+Build a full-stack web app called **Servly**.
+
+Servly is a platform that lets people **find and book trusted local services**, and lets **small service businesses** manage bookings, schedules, and customers in one place.
+
+Use the following landing page as the conceptual and content reference:
+
+* Title/brand: **Servly**
+* Tagline: “Services, simplified” and “Find and book trusted local services.”
+* Positioning: Servly makes it easy for people to discover and book verified local providers, and gives small businesses tools to run with the polish of a large company.
+* It targets:
+
+  * **For individuals**: booking cleaning, repairs, moving, beauty, automotive, etc., without a mess of texts or calls.
+  * **For businesses**: a modern booking system instead of scattered DMs and calendars.
+* Example service categories:
+
+  * Automotive Services
+  * Home Cleaning
+  * Handyman & Repairs
+  * Plumbing & Electrical
+  * HVAC & Heating/Cooling
+  * Landscaping & Lawn Care
+  * Moving & Delivery
+  * Beauty & Wellness
+  * More Services (pet care, tutoring, errands, etc.)
+
+I want you to turn this into a **real product MVP**, with separate flows for **customers** and **providers**, plus a simple **admin** view.
+
+---
+
+### Tech stack
+
+* **Frontend:** React + TypeScript (you can use Next.js or Vite + React, your choice).
+* **Styling:** Tailwind CSS.
+* **Backend:** Node.js + Express or Next.js API routes.
+* **Database:** SQLite (via Prisma or another simple ORM).
+* Add a clear `README.md` explaining how to run the project on Replit.
+
+---
+
+### Core Concepts & Roles
+
+1. **Users**
+
+   * A user can be:
+
+     * **Customer** (booking services).
+     * **Provider** (offering services).
+     * **Admin** (internal role).
+
+2. **Service Categories & Services**
+
+   * Categories (see list above).
+   * Each Provider can attach themselves to one or more categories and define specific **services** (e.g., “1-bedroom deep clean”, “Oil change”, “Local move”).
+
+3. **Bookings**
+
+   * A Booking connects:
+
+     * Customer
+     * Provider
+     * Category and specific service
+     * Date, time, location, notes
+     * Status (e.g., Pending, Accepted, Declined, Completed, Cancelled)
+
+---
+
+### Authentication & Onboarding
+
+Implement **basic auth**:
+
+* Email + password signup/login.
+* Store hashed passwords.
+* Role field on the user (customer/provider/admin).
+
+**Customer onboarding:**
+
+* After signup as **Customer**, ask for:
+
+  * Name
+  * Default location (city + postal/zip code)
+  * Optional phone number
+
+**Provider onboarding:**
+
+* After signup as **Provider**, collect:
+
+  * Business name
+  * Contact name
+  * Business email & phone
+  * Service areas (city / area)
+  * Categories they operate in (multi-select from the category list above)
+  * Short description of the business
+  * Base hourly rate or price notes
+  * Availability (simple weekly schedule: e.g., available days + time ranges)
+
+---
+
+### Customer Experience (Web App)
+
+Create a **Customer dashboard** with the same spirit as the landing page “Quick booking / customer view”.
+
+Features:
+
+1. **Browse & search providers**
+
+   * Landing/search form with fields:
+
+     * “What do you need?” (dropdown of categories)
+     * Date
+     * Time
+     * Location (city/postal code)
+   * When the user clicks **“See available providers”**, show a list of matching providers:
+
+     * Provider name
+     * Categories/services
+     * Short description
+     * Basic rating placeholder (you can hardcode or leave a field for the future)
+     * “Request booking” button
+
+2. **Booking flow**
+
+   * Clicking “Request booking” opens a booking form:
+
+     * Selected provider + category
+     * Date and time (pre-filled from search but editable)
+     * Exact address / area
+     * Notes / description of the job
+   * On submit:
+
+     * Create a Booking with status **Pending**.
+     * Show a success message: “Your booking request has been sent. The provider will confirm or decline.”
+
+3. **Customer bookings page**
+
+   * A page like “My bookings”:
+
+     * List all bookings with:
+
+       * Provider name
+       * Category/service
+       * Date & time
+       * Status (Pending, Accepted, etc.)
+     * Clicking a booking shows details (including notes and address).
+
+---
+
+### Provider Experience (Web App)
+
+Create a **Provider dashboard** that matches the “For service businesses” messaging from the landing page.
+
+Features:
+
+1. **Provider profile**
+
+   * A page where providers can:
+
+     * Edit business info (name, description, contact info).
+     * Choose service categories.
+     * Add/edit specific services:
+
+       * Service title
+       * Short description
+       * Price or pricing notes
+     * Set basic availability (e.g., days of the week + time ranges).
+
+2. **Booking requests**
+
+   * List all bookings where this provider is the selected provider.
+   * For each booking:
+
+     * Customer name (or anonymized if you prefer)
+     * Date & time
+     * Service/category
+     * Location area
+     * Notes
+     * Status
+   * Provider can:
+
+     * **Accept** or **Decline** a Pending booking.
+     * Mark Accepted bookings as **Completed**.
+   * When status changes, update it in the database so the customer sees updated status.
+
+3. **Schedule / calendar view (simple)**
+
+   * A simple list grouped by date:
+
+     * Today, upcoming this week, and all future bookings.
+   * It doesn’t need a full calendar component; a list view by date is enough for MVP.
+
+---
+
+### Admin / Internal View
+
+Create a minimal **Admin page** (web-based) for internal use (accessible only to users with role `admin`):
+
+* List all users with basic fields:
+
+  * ID, name, email, role, created date.
+* List all providers with:
+
+  * Business name, categories, active/inactive toggle.
+* List all bookings:
+
+  * Filter by status (Pending, Accepted, Completed, Cancelled).
+* Admin should be able to:
+
+  * Change a user’s role (e.g., upgrade to provider or admin).
+  * Deactivate a provider (e.g., an “active” boolean that hides them from search).
+
+---
+
+### UX & UI Notes
+
+* Use the **branding and language** from the landing page:
+
+  * Headings like:
+
+    * “Servly – Services, simplified.”
+    * “Find and book trusted local services.”
+  * Sections explaining:
+
+    * How it works for individuals: pick a service → compare providers → book & relax.
+    * How it works for businesses: join Servly → get booked → grow like a big brand.
+* Include a **top navigation bar** with:
+
+  * Logo/title “Servly”
+  * Links: “How it works”, “Services”, “For businesses”, “Log in”, “Join as a provider”
+* Make the app **responsive** and clean, with Tailwind CSS.
+* For now, **no payment integration** is required. Just focus on booking and management.
+
+---
+
+### Database schema (guidance)
+
+Use an ORM like Prisma with SQLite. Suggested models:
+
+* **User**
+
+  * id
+  * name
+  * email (unique)
+  * passwordHash
+  * role (`customer` | `provider` | `admin`)
+  * createdAt
+
+* **ProviderProfile**
+
+  * id
+  * userId (FK to User)
+  * businessName
+  * description
+  * phone
+  * city
+  * serviceAreas (string or JSON)
+  * isActive (boolean)
+
+* **ServiceCategory**
+
+  * id
+  * name (e.g., “Home Cleaning”)
+  * slug
+
+* **Service**
+
+  * id
+  * providerId (FK)
+  * categoryId (FK)
+  * title
+  * description
+  * priceNote
+
+* **Booking**
+
+  * id
+  * customerId (FK to User)
+  * providerId (FK to ProviderProfile)
+  * serviceId (FK to Service)
+  * categoryId (FK)
+  * dateTime
+  * address
+  * notes
+  * status (enum: Pending, Accepted, Declined, Completed, Cancelled)
+  * createdAt
+  * updatedAt
+
+* **ProviderAvailability** (optional/simple)
+
+  * id
+  * providerId
+  * dayOfWeek (0–6)
+  * startTime (string, e.g. “09:00”)
+  * endTime (string, e.g. “17:00”)
+
+You can simplify if needed, but keep the core relationships: users, providers, services, bookings.
+
+---
+
+### Final goal
+
+Deliver a **working Servly MVP** that:
+
+* Lets customers sign up, search for providers by category/location, and request bookings.
+* Lets providers sign up, create a profile, define services, and accept/decline/manage bookings.
+* Provides an admin view to oversee users, providers, and bookings.
+* Uses the copy, categories, and structure inspired by the existing Servly landing page, but as a real functional product.
+
+---
+
+If you need to simplify anything to make this build clean and maintainable, do so—but keep the core flows for **customers booking services** and **providers managing bookings** fully working.
