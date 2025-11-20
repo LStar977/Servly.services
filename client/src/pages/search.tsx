@@ -7,6 +7,14 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Star, MapPin, Search as SearchIcon, SlidersHorizontal } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 export default function Search() {
   const [location] = useLocation();
@@ -15,6 +23,7 @@ export default function Search() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // Filter providers logic
   const filteredProviders = useMemo(() => {
@@ -41,23 +50,59 @@ export default function Search() {
     });
   }, [searchTerm, selectedCategory]);
 
+  const FilterContent = () => (
+    <div className="space-y-6">
+      <div>
+         <h3 className="font-semibold mb-4">Categories</h3>
+         <div className="space-y-2">
+           <div 
+             className={`cursor-pointer text-sm p-2 rounded-md hover:bg-muted transition-colors ${selectedCategory === 'all' ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground'}`}
+             onClick={() => { setSelectedCategory('all'); setIsFilterOpen(false); }}
+           >
+             All Categories
+           </div>
+           {categories.map(cat => (
+             <div 
+               key={cat.id} 
+               className={`cursor-pointer text-sm p-2 rounded-md hover:bg-muted transition-colors ${selectedCategory === cat.slug ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground'}`}
+               onClick={() => { setSelectedCategory(cat.slug); setIsFilterOpen(false); }}
+             >
+               {cat.name}
+             </div>
+           ))}
+         </div>
+      </div>
+      
+      {/* Additional filters placeholder */}
+      <div>
+        <h3 className="font-semibold mb-4">Price Range</h3>
+        <div className="grid grid-cols-2 gap-2">
+           <Button variant="outline" size="sm">Any</Button>
+           <Button variant="outline" size="sm">$$</Button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">
       {/* Search Header */}
       <div className="mb-8 space-y-4">
         <h1 className="text-3xl font-bold">Find a Professional</h1>
         
-        <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-xl shadow-sm border">
+        <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-xl shadow-sm border sticky top-20 z-30">
           <div className="flex-1 relative">
              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
              <Input 
-               placeholder="Search by name, service, or city..." 
+               placeholder="Search..." 
                className="pl-9"
                value={searchTerm}
                onChange={(e) => setSearchTerm(e.target.value)}
              />
           </div>
-          <div className="w-full md:w-[200px]">
+          
+          {/* Desktop Category Select */}
+          <div className="hidden md:block w-[200px]">
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger>
                 <SelectValue placeholder="Category" />
@@ -70,7 +115,30 @@ export default function Search() {
               </SelectContent>
             </Select>
           </div>
-          <Button variant="outline" className="md:w-auto w-full">
+
+          {/* Mobile Filter Button (Sheet Trigger) */}
+          <div className="md:hidden">
+            <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  <SlidersHorizontal className="h-4 w-4 mr-2" /> Filters
+                  {selectedCategory !== 'all' && <Badge className="ml-2 h-5 px-1.5" variant="secondary">1</Badge>}
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-[80vh] rounded-t-[20px]">
+                <SheetHeader className="mb-6">
+                  <SheetTitle>Filters</SheetTitle>
+                  <SheetDescription>Refine your search results</SheetDescription>
+                </SheetHeader>
+                <div className="overflow-y-auto h-full pb-20">
+                  <FilterContent />
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          {/* Desktop Filter Button (Placeholder) */}
+          <Button variant="outline" className="hidden md:flex">
             <SlidersHorizontal className="h-4 w-4 mr-2" /> Filters
           </Button>
         </div>
@@ -80,26 +148,7 @@ export default function Search() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Sidebar Filters (Desktop) */}
         <div className="hidden lg:block space-y-6">
-          <div>
-             <h3 className="font-semibold mb-4">Categories</h3>
-             <div className="space-y-2">
-               <div 
-                 className={`cursor-pointer text-sm p-2 rounded-md hover:bg-muted ${selectedCategory === 'all' ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground'}`}
-                 onClick={() => setSelectedCategory('all')}
-               >
-                 All Categories
-               </div>
-               {categories.map(cat => (
-                 <div 
-                   key={cat.id} 
-                   className={`cursor-pointer text-sm p-2 rounded-md hover:bg-muted ${selectedCategory === cat.slug ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground'}`}
-                   onClick={() => setSelectedCategory(cat.slug)}
-                 >
-                   {cat.name}
-                 </div>
-               ))}
-             </div>
-          </div>
+          <FilterContent />
         </div>
 
         {/* Provider List */}
@@ -168,8 +217,8 @@ export default function Search() {
                       </div>
                       
                       <div className="mt-6 flex justify-end pt-4 border-t">
-                         <Link href={`/booking?providerId=${provider.id}`}>
-                           <Button>Request Booking</Button>
+                         <Link href={`/booking?providerId=${provider.id}`} className="w-full md:w-auto">
+                           <Button className="w-full">Request Booking</Button>
                          </Link>
                       </div>
                     </div>

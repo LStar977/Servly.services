@@ -75,14 +75,14 @@ export default function Booking() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl">
+    <div className="container mx-auto px-4 py-8 max-w-3xl pb-24 md:pb-8">
       <Button variant="ghost" className="mb-6 pl-0 hover:pl-0 hover:bg-transparent text-muted-foreground" onClick={() => setLocation('/search')}>
         ← Back to Search
       </Button>
 
       <div className="grid md:grid-cols-3 gap-8">
         {/* Main Form */}
-        <div className="md:col-span-2 space-y-6">
+        <div className="md:col-span-2 space-y-6 order-2 md:order-1">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold">Request Booking</h1>
             <p className="text-muted-foreground">Complete the form below to request a service.</p>
@@ -179,7 +179,7 @@ export default function Booking() {
         </div>
 
         {/* Provider Summary Sidebar */}
-        <div>
+        <div className="order-1 md:order-2">
           <Card className="sticky top-24">
             <CardHeader>
               <CardTitle className="text-lg">Provider Summary</CardTitle>
