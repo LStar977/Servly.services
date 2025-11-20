@@ -1,0 +1,67 @@
+Updated Suggested Edits for the About Page
+🔄 Replace the Stats Box With This:
+Launching Early 2026
+
+Servly is currently in development. We’re building our provider community and preparing for launch.
+
+Early 2026 Launch
+
+Provider onboarding in progress
+
+Join the waitlist to be first in line
+
+Button:
+👉 Join the Waitlist
+
+(If you want, I can generate a clean UI graphic for this “Launch 2026” box.)
+
+🔥 Updated “Our Story” Section With Launch Timeline Included
+Our Story
+
+Servly was created because finding reliable local services shouldn’t be this hard — and running a small service business shouldn’t feel impossible.
+
+After working in customer service and helping manage a small family business, I experienced both sides of the problem:
+the people who need help but don’t know who to trust, and the small business owners who provide great work but struggle to get consistent customers without expensive ads or complicated tools.
+
+I saw how many everyday tasks still rely on phone tag, outdated directories, and guesswork. Meanwhile, large companies have access to automation, scheduling software, and marketing systems — tools most small businesses can’t afford.
+
+Servly was built to bridge that gap.
+
+We’re creating a platform where customers can book trusted professionals as easily as ordering a ride, and where small businesses get modern tools, visibility, and opportunity all in one place.
+
+Servly isn’t just a marketplace. It’s a movement to make work easier, faster, and fairer for everyone.
+
+Launching Early 2026
+
+We’re currently onboarding early providers and building our community.
+Join the waitlist to get early access when we launch.
+
+Buttons:
+🔵 Join the Waitlist
+⚪ Sign up as a Provider
+
+🎨 How This Should Look on the Page
+1. Main About Hero — unchanged
+
+✔ Perfect as-is.
+
+2. Mission + Vision — updated (optional clean version)
+
+I can rewrite if you want.
+
+3. New “Launch Status” box
+
+Placed where the 10k/500+/4.9 box used to be.
+
+4. Story — replaced with the updated one
+
+Short, powerful, founder-led, and aligned with the timeline.
+
+5. CTA Section (Join the Movement) — update wording slightly
+
+Change:
+
+Find Services → Join Waitlist
+Join as Provider stays the same.
+
+This aligns with “launching soon.”
