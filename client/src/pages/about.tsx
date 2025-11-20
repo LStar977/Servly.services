@@ -5,9 +5,11 @@ import { Link } from "wouter";
 import { Rocket, Clock, ArrowRight, CheckCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 export default function About() {
   const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"customer" | "provider">("customer");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
@@ -27,17 +29,16 @@ export default function About() {
     setIsLoading(true);
 
     try {
-      // Assuming the table name is 'waitlist' and column is 'email'
       const { error } = await supabase
         .from('waitlist')
-        .insert([{ email }]);
+        .insert([{ email, role }]);
 
       if (error) throw error;
 
       setIsSubmitted(true);
       toast({
         title: "Welcome to the list!",
-        description: "You've been added to the Servly waitlist.",
+        description: `You've been added to the Servly waitlist as a ${role}.`,
       });
       setEmail("");
     } catch (error: any) {
@@ -111,6 +112,22 @@ export default function About() {
                      </div>
                    ) : (
                      <form onSubmit={handleJoinWaitlist} className="w-full space-y-3">
+                       <div className="flex gap-2 mb-2">
+                          <button
+                            type="button"
+                            onClick={() => setRole('customer')}
+                            className={cn("px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-1", role === 'customer' ? "bg-white text-slate-900" : "bg-white/10 text-white hover:bg-white/20")}
+                          >
+                            I need services
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setRole('provider')}
+                            className={cn("px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-1", role === 'provider' ? "bg-white text-slate-900" : "bg-white/10 text-white hover:bg-white/20")}
+                          >
+                            I offer services
+                          </button>
+                       </div>
                        <div className="flex flex-col sm:flex-row gap-3">
                          <Input 
                            placeholder="Enter your email address" 
