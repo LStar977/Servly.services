@@ -1,9 +1,10 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, ArrowRight, Star, ShieldCheck, Clock, HeartHandshake } from "lucide-react";
+import { Search, MapPin, ShieldCheck, Clock, HeartHandshake, Star } from "lucide-react";
 import { categories } from "@/lib/data";
-import heroImage from "@assets/stock_images/happy_family_in_a_cl_5a620258.jpg";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -61,14 +62,38 @@ export default function Home() {
             
             <div className="relative lg:h-[600px] animate-in fade-in zoom-in duration-1000 delay-200 hidden lg:block">
               <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent rounded-[3rem] transform rotate-3"></div>
-              <img 
-                src={heroImage} 
-                alt="Happy family in clean home" 
-                className="relative w-full h-full object-cover rounded-[3rem] shadow-2xl"
-              />
+              
+              {/* Image Carousel */}
+              <Carousel 
+                plugins={[
+                  Autoplay({
+                    delay: 4000,
+                    stopOnInteraction: false,
+                  }),
+                ]}
+                className="w-full h-full rounded-[3rem] shadow-2xl overflow-hidden"
+              >
+                <CarouselContent className="h-full ml-0">
+                  {categories.map((category) => (
+                    <CarouselItem key={category.id} className="pl-0 h-full">
+                      <div className="relative w-full h-full">
+                        <img 
+                          src={category.image} 
+                          alt={category.name}
+                          className="w-full h-full object-cover"
+                        />
+                        {/* Overlay Label */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-8 flex items-end">
+                           <p className="text-white font-medium text-lg">{category.name}</p>
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
               
               {/* Floating Card 1 */}
-              <div className="absolute top-12 -left-6 bg-card p-4 rounded-xl shadow-lg border animate-bounce duration-[3000ms]">
+              <div className="absolute top-12 -left-6 bg-card p-4 rounded-xl shadow-lg border animate-bounce duration-[3000ms] z-20">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center text-green-600">
                     <ShieldCheck className="h-5 w-5" />
@@ -81,7 +106,7 @@ export default function Home() {
               </div>
 
               {/* Floating Card 2 */}
-              <div className="absolute bottom-20 -right-6 bg-card p-4 rounded-xl shadow-lg border animate-bounce duration-[4000ms]">
+              <div className="absolute bottom-20 -right-6 bg-card p-4 rounded-xl shadow-lg border animate-bounce duration-[4000ms] z-20">
                 <div className="flex items-center gap-3">
                   <div className="flex -space-x-2">
                     {[1,2,3].map(i => (
