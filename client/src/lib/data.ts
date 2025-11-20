@@ -5,6 +5,8 @@ import electricalImg from '@assets/stock_images/electrician_working__f2fb3e06.jp
 import landscapingImg from '@assets/stock_images/landscaper_mowing_a__44e94b83.jpg';
 import movingImg from '@assets/stock_images/professional_movers__56531fe2.jpg';
 import automotiveImg from '@assets/stock_images/mechanic_working_on__0b2bfa93.jpg';
+import snowRemovalImg from '@assets/stock_images/person_shoveling_sno_15d52731.jpg';
+import petServicesImg from '@assets/stock_images/dog_walker_walking_m_ef180228.jpg';
 
 export type Role = 'customer' | 'provider' | 'admin';
 
@@ -64,11 +66,13 @@ export interface Category {
 
 export const categories: Category[] = [
   { id: 'cat_1', name: 'Home Cleaning', slug: 'cleaning', icon: 'Sparkles', image: homeCleaningImg },
+  { id: 'cat_4', name: 'Lawn Care', slug: 'landscaping', icon: 'Trees', image: landscapingImg },
+  { id: 'cat_6', name: 'Auto Detailing', slug: 'automotive', icon: 'Car', image: automotiveImg },
+  { id: 'cat_7', name: 'Pet Services', slug: 'pets', icon: 'Dog', image: petServicesImg },
+  { id: 'cat_8', name: 'Snow Removal', slug: 'snow', icon: 'Snowflake', image: snowRemovalImg },
   { id: 'cat_2', name: 'Plumbing', slug: 'plumbing', icon: 'Wrench', image: plumbingImg },
   { id: 'cat_3', name: 'Electrical', slug: 'electrical', icon: 'Zap', image: electricalImg },
-  { id: 'cat_4', name: 'Landscaping', slug: 'landscaping', icon: 'Trees', image: landscapingImg },
   { id: 'cat_5', name: 'Moving', slug: 'moving', icon: 'Truck', image: movingImg },
-  { id: 'cat_6', name: 'Automotive', slug: 'automotive', icon: 'Car', image: automotiveImg },
 ];
 
 export const mockUsers: User[] = [

@@ -1,0 +1,245 @@
+SERVLY WEBSITE CONTENT — FULL BREAKDOWN
+
+Your website needs to do 3 things:
+
+Explain what Servly is (fast).
+
+Make customers want to book.
+
+Make businesses want to join.
+
+So your site will have 6 main sections:
+
+🏠 1. HOME PAGE
+
+This is the MOST important page. It needs to instantly tell people:
+
+What Servly does
+
+Why they should care
+
+How to start
+
+Hero Headline
+
+A bold sentence at the top.
+Purpose: Tell people what Servly does in ONE line.
+
+Example:
+
+“Your world of services, simplified.”
+
+This sets the tone — clean, modern, effortless.
+
+Subheadline
+
+Explains the headline in a bit more detail.
+
+Example:
+
+“Book trusted local professionals in minutes — from cleaning to car detailing.”
+
+This makes the user think:
+“Oh! It’s like a one-stop booking app.”
+
+Call-to-Action (CTA) Buttons
+
+You need TWO main buttons:
+
+✔️ “Find Services Near You” → For customers
+✔️ “Join as a Provider” → For businesses
+
+These buttons should be BIG and at the top of the page.
+
+Visuals
+
+A clean grid of categories with icons or images:
+
+Cleaning
+
+Lawn Care
+
+Auto Detailing
+
+Pet Services
+
+Snow Removal
+
+Users should immediately see what services you offer.
+
+📲 2. HOW IT WORKS PAGE
+
+This page explains your process simply using visuals or steps.
+
+For Customers (Example)
+
+Step 1: Choose a Service
+Step 2: Pick a Time
+Step 3: Get Matched Instantly
+Step 4: Pay Securely in-App
+Step 5: Service Completed → Leave Review
+
+Add clean icons or illustrations above each step.
+
+For Providers (Example)
+
+Step 1: Create Business Profile
+Step 2: Set Availability & Pricing
+Step 3: Receive Bookings
+Step 4: Get Paid Automatically
+Step 5: Upgrade to Servly Pro
+
+Demo Video or Animation
+
+If you ever make a screen recording of your future app UI, you’ll put it here.
+
+Purpose:
+Let people SEE how Servly works in 30–60 seconds.
+
+🧰 3. FOR BUSINESSES PAGE
+
+This page sells companies on joining Servly.
+
+Explain “Servly Pro”
+
+Break down the benefits:
+
+Automated scheduling
+
+Customer management
+
+Built-in payments
+
+Business dashboard
+
+Analytics
+
+Repeat-booking reminders
+
+Marketing tools
+
+Show Dashboard Screenshots
+
+Even simple mockups are good (you can make them later).
+
+Companies LOVE visuals — it makes them trust the platform.
+
+Testimonials
+
+Once you have providers, add quotes like:
+
+“Servly helped us double our monthly bookings.”
+
+Pricing Tiers
+
+Example:
+
+Free Plan: Accept jobs on the marketplace
+
+Pro Plan: $99/month
+
+Premium Plan: $199/month
+
+(We can finalize this later.)
+
+🧩 4. ABOUT PAGE
+
+This is where you place:
+
+Mission
+
+What you’re trying to accomplish.
+
+Vision
+
+Where you see Servly in the future.
+
+Story
+
+Why you created Servly. Focus on:
+
+frustration with outdated service booking
+
+wanting to help small businesses
+
+making life easier for customers
+
+building a modern system
+
+This builds trust, credibility, and personal connection.
+
+📞 5. CONTACT / SUPPORT PAGE
+
+This page helps customers AND businesses reach you.
+
+Include:
+
+Contact Form
+
+Simple fields:
+
+Name
+
+Email
+
+Message
+
+Provider Onboarding Form
+
+A short “Apply as a Provider” form:
+
+Business name
+
+Service category
+
+Service area
+
+Phone number
+
+Email
+
+Support Options
+
+Chat widget (even automated later)
+
+Support email (ex: support@servly.com
+)
+
+Purpose:
+Shows customers you’re legit and available.
+
+⚖️ 6. LEGAL PAGES
+
+Every real platform needs these for trust & protection:
+
+Terms of Use
+
+Explains how your app works and what users can/can’t do.
+
+Privacy Policy
+
+Explains how you handle user data.
+
+Provider Agreement
+
+Rules for businesses using Servly:
+
+expectations
+
+payouts
+
+cancellation
+
+conduct
+
+liability
+
+Cancellation Policy
+
+Clear explanation for customers:
+
+how they cancel
+
+fees if applicable
+
+These do NOT need to be publicly written right now — just placeholders until the platform is built.

@@ -49,14 +49,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
-            <Link href="/search">
+            <Link href="/how-it-works">
               <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-                Find a Service
+                How it Works
               </span>
             </Link>
             <Link href="/for-business">
               <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
                 For Business
+              </span>
+            </Link>
+            <Link href="/about">
+              <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                About
+              </span>
+            </Link>
+            <Link href="/contact">
+              <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                Contact
               </span>
             </Link>
           </nav>
@@ -127,14 +137,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {isMobileMenuOpen && (
           <div className="md:hidden border-t p-4 bg-background space-y-4">
             <nav className="flex flex-col gap-4">
-              <Link href="/search">
+              <Link href="/how-it-works">
                 <span className="text-sm font-medium py-2 block" onClick={() => setIsMobileMenuOpen(false)}>
-                  Find a Service
+                  How it Works
                 </span>
               </Link>
               <Link href="/for-business">
                 <span className="text-sm font-medium py-2 block" onClick={() => setIsMobileMenuOpen(false)}>
                   For Business
+                </span>
+              </Link>
+              <Link href="/about">
+                <span className="text-sm font-medium py-2 block" onClick={() => setIsMobileMenuOpen(false)}>
+                  About
+                </span>
+              </Link>
+              <Link href="/contact">
+                <span className="text-sm font-medium py-2 block" onClick={() => setIsMobileMenuOpen(false)}>
+                  Contact
                 </span>
               </Link>
               <div className="border-t pt-4 flex flex-col gap-2">
@@ -191,36 +211,35 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <span className="font-heading font-bold text-lg tracking-tight">Servly</span>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Connecting you with trusted local professionals for all your home and lifestyle needs.
+                Your world of services, simplified. Book trusted local professionals in minutes.
               </p>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4">Services</h4>
+              <h4 className="font-semibold mb-4">Explore</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/search?c=cleaning">Home Cleaning</Link></li>
-                <li><Link href="/search?c=plumbing">Plumbing</Link></li>
-                <li><Link href="/search?c=electrical">Electrical</Link></li>
-                <li><Link href="/search?c=moving">Moving</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link href="/how-it-works">How it Works</Link></li>
+                <li><Link href="/search">Find a Pro</Link></li>
                 <li><Link href="/about">About Us</Link></li>
-                <li><Link href="/careers">Careers</Link></li>
-                <li><Link href="/blog">Blog</Link></li>
                 <li><Link href="/contact">Contact</Link></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold mb-4">For Pros</h4>
+              <h4 className="font-semibold mb-4">For Business</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/auth/signup?role=provider">Become a Provider</Link></li>
-                <li><Link href="/resources">Success Stories</Link></li>
-                <li><Link href="/provider-support">Provider Support</Link></li>
+                <li><Link href="/for-business">Benefits</Link></li>
+                <li><Link href="/auth/signup?role=provider">Join as Provider</Link></li>
+                <li><Link href="/for-business">Success Stories</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><Link href="/legal">Terms of Use</Link></li>
+                <li><Link href="/legal">Privacy Policy</Link></li>
+                <li><Link href="/legal">Provider Agreement</Link></li>
               </ul>
             </div>
           </div>
@@ -229,8 +248,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               © {new Date().getFullYear()} Servly Inc. All rights reserved.
             </p>
             <div className="flex gap-4 text-xs text-muted-foreground">
-              <Link href="/privacy">Privacy Policy</Link>
-              <Link href="/terms">Terms of Service</Link>
+              <Link href="/legal">Privacy Policy</Link>
+              <Link href="/legal">Terms of Service</Link>
             </div>
           </div>
         </div>

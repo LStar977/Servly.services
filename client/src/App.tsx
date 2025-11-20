@@ -16,6 +16,11 @@ import Booking from "@/pages/booking";
 import CustomerDashboard from "@/pages/customer/dashboard";
 import ProviderDashboard from "@/pages/provider/dashboard";
 import AdminDashboard from "@/pages/admin/dashboard";
+import HowItWorks from "@/pages/how-it-works";
+import ForBusiness from "@/pages/for-business";
+import About from "@/pages/about";
+import Contact from "@/pages/contact";
+import Legal from "@/pages/legal";
 
 function Router() {
   return (
@@ -31,22 +36,17 @@ function Router() {
         <Route path="/search" component={Search} />
         <Route path="/booking" component={Booking} />
         
+        {/* Informational Pages */}
+        <Route path="/how-it-works" component={HowItWorks} />
+        <Route path="/for-business" component={ForBusiness} />
+        <Route path="/about" component={About} />
+        <Route path="/contact" component={Contact} />
+        <Route path="/legal" component={Legal} />
+        
         {/* Dashboards */}
         <Route path="/customer/dashboard" component={CustomerDashboard} />
         <Route path="/provider/dashboard" component={ProviderDashboard} />
         <Route path="/admin/dashboard" component={AdminDashboard} />
-        
-        {/* Static pages fallbacks */}
-        <Route path="/for-business">
-           {/* Redirect or show simple content */}
-           <div className="container mx-auto py-20 text-center">
-             <h1 className="text-4xl font-bold mb-4">Grow your business with Servly</h1>
-             <p className="mb-8 text-lg text-muted-foreground">Join thousands of professionals finding new customers every day.</p>
-             <a href="/auth/signup?role=provider" className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90">
-               Get Started Today
-             </a>
-           </div>
-        </Route>
         
         <Route component={NotFound} />
       </Switch>
