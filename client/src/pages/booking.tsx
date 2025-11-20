@@ -56,6 +56,25 @@ export default function Booking() {
     setStep(3); // Success step
   };
 
+  // Generate time slots with 15-minute increments
+  const generateTimeSlots = () => {
+    const slots = [];
+    const startHour = 8; // 8 AM
+    const endHour = 19; // 7 PM
+
+    for (let hour = startHour; hour < endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += 15) {
+        const period = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour > 12 ? hour - 12 : hour;
+        const displayMinute = minute.toString().padStart(2, '0');
+        slots.push(`${displayHour}:${displayMinute} ${period}`);
+      }
+    }
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
+
   if (step === 3) {
     return (
       <div className="container mx-auto px-4 py-16 flex flex-col items-center justify-center text-center max-w-lg">
@@ -151,17 +170,10 @@ export default function Booking() {
                         <SelectValue placeholder="Select time" />
                       </div>
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="08:00 AM">08:00 AM</SelectItem>
-                      <SelectItem value="09:00 AM">09:00 AM</SelectItem>
-                      <SelectItem value="10:00 AM">10:00 AM</SelectItem>
-                      <SelectItem value="11:00 AM">11:00 AM</SelectItem>
-                      <SelectItem value="12:00 PM">12:00 PM</SelectItem>
-                      <SelectItem value="01:00 PM">01:00 PM</SelectItem>
-                      <SelectItem value="02:00 PM">02:00 PM</SelectItem>
-                      <SelectItem value="03:00 PM">03:00 PM</SelectItem>
-                      <SelectItem value="04:00 PM">04:00 PM</SelectItem>
-                      <SelectItem value="05:00 PM">05:00 PM</SelectItem>
+                    <SelectContent className="max-h-60">
+                      {timeSlots.map((slot) => (
+                        <SelectItem key={slot} value={slot}>{slot}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
