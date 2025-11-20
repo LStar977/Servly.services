@@ -1,25 +1,62 @@
+import { useState } from "react";
 import { mockBookings, mockProviders, categories } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Clock, Search } from "lucide-react";
+import { Calendar, MapPin, Clock, Search, CreditCard, CheckCircle, Loader2, Apple } from "lucide-react";
 import { Link } from "wouter";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useToast } from "@/hooks/use-toast";
 
 export default function CustomerDashboard() {
   const { user } = useAuth();
+  const { toast } = useToast();
   
   // Mock filtering bookings for this user
   const myBookings = mockBookings.filter(b => b.customerId === (user?.id || 'u1'));
+
+  const [paymentBookingId, setPaymentBookingId] = useState<string | null>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("card");
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100';
       case 'accepted': return 'bg-blue-100 text-blue-800 hover:bg-blue-100';
       case 'completed': return 'bg-green-100 text-green-800 hover:bg-green-100';
+      case 'paid': return 'bg-emerald-100 text-emerald-800 hover:bg-emerald-100';
       case 'cancelled': return 'bg-red-100 text-red-800 hover:bg-red-100';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const handlePayNow = (bookingId: string) => {
+    setPaymentBookingId(bookingId);
+  };
+
+  const processPayment = async () => {
+    setIsProcessingPayment(true);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    setIsProcessingPayment(false);
+    setPaymentBookingId(null);
+    
+    toast({
+      title: "Payment Successful!",
+      description: "Your payment has been processed securely.",
+    });
   };
 
   return (
@@ -99,11 +136,22 @@ export default function CustomerDashboard() {
                        <div className="text-xl font-bold">${service?.price || 0}</div>
                      </div>
                      
+                     {booking.status === 'accepted' && (
+                       <Button 
+                         className="w-full bg-green-600 hover:bg-green-700 text-white shadow-md"
+                         onClick={() => handlePayNow(booking.id)}
+                       >
+                         <CreditCard className="w-4 h-4 mr-2" />
+                         Pay Now
+                       </Button>
+                     )}
+
                      {booking.status === 'completed' && (
                        <Button variant="outline" className="w-full">Rate Provider</Button>
                      )}
-                     {(booking.status === 'pending' || booking.status === 'accepted') && (
-                       <Button variant="destructive" className="w-full bg-white text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 shadow-none">Cancel Booking</Button>
+                     
+                     {(booking.status === 'pending') && (
+                       <Button variant="destructive" className="w-full bg-white text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 shadow-none">Cancel Request</Button>
                      )}
                   </div>
                 </div>
@@ -112,6 +160,91 @@ export default function CustomerDashboard() {
           })
         )}
       </div>
+
+      {/* Payment Dialog */}
+      <Dialog open={!!paymentBookingId} onOpenChange={(open) => !open && setPaymentBookingId(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Complete Payment</DialogTitle>
+            <DialogDescription>
+              Securely pay for your service with Servly.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-2 gap-4">
+              <div>
+                <RadioGroupItem value="card" id="card" className="peer sr-only" />
+                <Label
+                  htmlFor="card"
+                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                >
+                  <CreditCard className="mb-3 h-6 w-6" />
+                  Credit Card
+                </Label>
+              </div>
+              <div>
+                <RadioGroupItem value="apple" id="apple" className="peer sr-only" />
+                <Label
+                  htmlFor="apple"
+                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                >
+                  <Apple className="mb-3 h-6 w-6" />
+                  Apple Pay
+                </Label>
+              </div>
+            </RadioGroup>
+
+            {paymentMethod === 'card' && (
+              <div className="grid gap-2 animate-in fade-in slide-in-from-top-2">
+                <div className="grid gap-1">
+                  <Label htmlFor="name">Name on Card</Label>
+                  <Input id="name" placeholder="Alice Customer" />
+                </div>
+                <div className="grid gap-1">
+                  <Label htmlFor="number">Card Number</Label>
+                  <Input id="number" placeholder="0000 0000 0000 0000" />
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="grid gap-1">
+                    <Label htmlFor="month">Expires</Label>
+                    <Input id="month" placeholder="MM/YY" />
+                  </div>
+                  <div className="grid gap-1">
+                    <Label htmlFor="cvc">CVC</Label>
+                    <Input id="cvc" placeholder="123" />
+                  </div>
+                  <div className="grid gap-1">
+                    <Label htmlFor="zip">Zip</Label>
+                    <Input id="zip" placeholder="12345" />
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {paymentMethod === 'apple' && (
+               <div className="py-8 text-center bg-muted/30 rounded-lg border animate-in fade-in slide-in-from-top-2">
+                  <div className="bg-black text-white inline-flex items-center px-6 py-3 rounded-lg font-medium cursor-pointer hover:opacity-90 transition-opacity">
+                     <Apple className="w-5 h-5 mr-2" /> Pay with Apple Pay
+                  </div>
+               </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPaymentBookingId(null)}>Cancel</Button>
+            <Button onClick={processPayment} disabled={isProcessingPayment} className="bg-green-600 hover:bg-green-700">
+              {isProcessingPayment ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...
+                </>
+              ) : (
+                <>Pay Securely</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
