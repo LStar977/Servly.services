@@ -5,8 +5,8 @@ import electricalImg from '@assets/stock_images/electrician_working__f2fb3e06.jp
 import landscapingImg from '@assets/stock_images/landscaper_mowing_a__44e94b83.jpg';
 import movingImg from '@assets/stock_images/professional_movers__56531fe2.jpg';
 import automotiveImg from '@assets/stock_images/mechanic_working_on__0b2bfa93.jpg';
-import snowRemovalImg from '@assets/stock_images/person_shoveling_sno_15d52731.jpg';
-import petServicesImg from '@assets/stock_images/dog_walker_walking_m_ef180228.jpg';
+import snowRemovalImg from '@assets/stock_images/person_shoveling_sno_83d351ec.jpg';
+import petServicesImg from '@assets/stock_images/dog_walker_walking_m_ff2b0b08.jpg';
 
 export type Role = 'customer' | 'provider' | 'admin';
 
