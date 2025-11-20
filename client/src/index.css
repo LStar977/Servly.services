@@ -39,8 +39,8 @@
 }
 
 :root {
-  /* Clean, trusted blue theme */
-  --background: 210 40% 98%;
+  /* Clean, trusted blue theme with tech-forward adjustments */
+  --background: 220 30% 98%; /* Cooler white */
   --foreground: 222 47% 11%;
   
   --card: 0 0% 100%;
@@ -49,30 +49,30 @@
   --popover: 0 0% 100%;
   --popover-foreground: 222 47% 11%;
   
-  /* Brand Blue */
-  --primary: 221 83% 53%; /* #2563EB */
+  /* Tech Indigo Blue */
+  --primary: 230 85% 60%; /* Indigo-ish Blue */
   --primary-foreground: 210 40% 98%;
   
   /* Soft Secondary */
-  --secondary: 210 40% 96.1%;
+  --secondary: 225 30% 96%;
   --secondary-foreground: 222 47% 11.2%;
   
-  --muted: 210 40% 96.1%;
+  --muted: 225 30% 96%;
   --muted-foreground: 215.4 16.3% 46.9%;
   
-  --accent: 210 40% 96.1%;
+  --accent: 225 30% 96%;
   --accent-foreground: 222 47% 11.2%;
   
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
 
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 221 83% 53%;
+  --border: 220 20% 92%;
+  --input: 220 20% 92%;
+  --ring: 230 85% 60%;
   
-  --radius: 0.5rem;
+  --radius: 0.75rem; /* Slightly cleaner radius */
   
-  --chart-1: 221 83% 53%;
+  --chart-1: 230 85% 60%;
   --chart-2: 173 58% 39%;
   --chart-3: 197 37% 24%;
   --chart-4: 43 74% 66%;
@@ -89,7 +89,7 @@
   --popover: 222 47% 11%;
   --popover-foreground: 210 40% 98%;
   
-  --primary: 217 91% 60%;
+  --primary: 230 85% 65%;
   --primary-foreground: 222 47% 11.2%;
   
   --secondary: 217.2 32.6% 17.5%;
@@ -106,7 +106,7 @@
   
   --border: 217.2 32.6% 17.5%;
   --input: 217.2 32.6% 17.5%;
-  --ring: 224.3 76.3% 48%;
+  --ring: 230 85% 65%;
 }
 
 @layer base {

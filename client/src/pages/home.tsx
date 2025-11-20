@@ -26,6 +26,8 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <section className="relative pt-16 pb-24 lg:pt-32 lg:pb-40 overflow-hidden bg-background">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/20 via-background to-background dark:from-indigo-500/10 dark:via-background dark:to-background -z-10"></div>
+        
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-10 animate-in slide-in-from-bottom-10 fade-in duration-700">
@@ -67,8 +69,8 @@ export default function Home() {
               </div>
             </div>
             
-            <div className="relative lg:h-[600px] animate-in fade-in zoom-in duration-1000 delay-200 hidden lg:block">
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent rounded-[3rem] transform rotate-3"></div>
+            <div className="relative lg:h-[600px] h-[400px] animate-in fade-in zoom-in duration-1000 delay-200 hidden lg:block">
+              <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent rounded-3xl transform rotate-3"></div>
               
               <Carousel 
                 plugins={[
@@ -77,7 +79,7 @@ export default function Home() {
                     stopOnInteraction: false,
                   }),
                 ]}
-                className="w-full h-full rounded-[3rem] shadow-2xl overflow-hidden border-4 border-white dark:border-slate-800"
+                className="w-full h-full rounded-2xl shadow-2xl overflow-hidden border border-border/50"
               >
                 <CarouselContent className="h-full ml-0">
                   {categories.map((category) => (
@@ -88,11 +90,16 @@ export default function Home() {
                           alt={category.name}
                           className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-                        <div className="absolute bottom-0 left-0 right-0 p-10">
-                           <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 inline-block">
-                             <p className="text-white font-heading font-bold text-2xl mb-2">{category.name}</p>
-                             <p className="text-white/80 text-sm">Book instant {category.name} services</p>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                        <div className="absolute bottom-0 left-0 right-0 p-8">
+                           <div className="flex items-end justify-between">
+                             <div>
+                               <p className="text-white font-heading font-bold text-3xl mb-2">{category.name}</p>
+                               <p className="text-white/80 text-lg">Book instant {category.name} services</p>
+                             </div>
+                             <Button variant="secondary" className="rounded-full h-12 w-12 p-0 flex items-center justify-center">
+                               <ArrowRight className="w-5 h-5" />
+                             </Button>
                            </div>
                         </div>
                       </div>
@@ -103,14 +110,14 @@ export default function Home() {
             </div>
           </div>
         </div>
-        
-        {/* Background Decoration */}
-        <div className="absolute top-0 right-0 -z-10 w-1/2 h-full bg-gradient-to-l from-blue-50/50 to-transparent dark:from-blue-950/20"></div>
       </section>
 
       {/* Categories Grid Section */}
-      <section className="py-24 bg-muted/30">
-        <div className="container mx-auto px-4">
+      <section className="py-24 bg-muted/30 relative overflow-hidden">
+         {/* Subtle tech grid pattern */}
+         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#444 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
+
+        <div className="container mx-auto px-4 relative z-10">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-heading font-bold mb-4">What do you need done?</h2>
             <p className="text-muted-foreground text-lg">Explore our most popular service categories.</p>
@@ -119,7 +126,9 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {categories.map((category) => (
               <Link key={category.id} href={`/search?category=${category.slug}`}>
-                <div className="group cursor-pointer flex flex-col items-center gap-6 p-8 rounded-3xl bg-card border border-border/50 hover:border-primary/50 hover:shadow-xl transition-all duration-300 h-full">
+                <div className="group cursor-pointer flex flex-col items-center gap-6 p-8 rounded-3xl bg-card border border-border/50 hover:border-primary/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  
                   <div className="h-20 w-20 rounded-2xl bg-primary/5 group-hover:bg-primary/10 flex items-center justify-center transition-colors text-primary">
                      {getIcon(category.icon)}
                   </div>
