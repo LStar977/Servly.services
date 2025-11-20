@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2, CheckCircle } from "lucide-react";
+import { CalendarIcon, Loader2, CheckCircle, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Booking() {
@@ -28,6 +28,7 @@ export default function Booking() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState<Date>();
+  const [time, setTime] = useState<string>();
   const [selectedService, setSelectedService] = useState<string>("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
@@ -48,7 +49,7 @@ export default function Booking() {
     
     toast({
       title: "Booking Request Sent!",
-      description: `Your request has been sent to ${provider.businessName}.`,
+      description: `Your request has been sent to ${provider.businessName} for ${date ? format(date, "MMM d") : ''} at ${time}.`,
     });
     
     setIsSubmitting(false);
@@ -113,31 +114,57 @@ export default function Booking() {
                 </RadioGroup>
               </div>
 
-              <div className="grid gap-2">
-                <Label>Preferred Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !date && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? format(date, "PPP") : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
-                      initialFocus
-                      disabled={(date) => date < new Date()}
-                    />
-                  </PopoverContent>
-                </Popover>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Preferred Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !date && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        initialFocus
+                        disabled={(date) => date < new Date()}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label>Preferred Time</Label>
+                  <Select onValueChange={setTime} value={time}>
+                    <SelectTrigger className={cn(!time && "text-muted-foreground")}>
+                      <div className="flex items-center">
+                        <Clock className="mr-2 h-4 w-4" />
+                        <SelectValue placeholder="Select time" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="08:00 AM">08:00 AM</SelectItem>
+                      <SelectItem value="09:00 AM">09:00 AM</SelectItem>
+                      <SelectItem value="10:00 AM">10:00 AM</SelectItem>
+                      <SelectItem value="11:00 AM">11:00 AM</SelectItem>
+                      <SelectItem value="12:00 PM">12:00 PM</SelectItem>
+                      <SelectItem value="01:00 PM">01:00 PM</SelectItem>
+                      <SelectItem value="02:00 PM">02:00 PM</SelectItem>
+                      <SelectItem value="03:00 PM">03:00 PM</SelectItem>
+                      <SelectItem value="04:00 PM">04:00 PM</SelectItem>
+                      <SelectItem value="05:00 PM">05:00 PM</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="grid gap-2">
@@ -169,7 +196,7 @@ export default function Booking() {
                    className="w-full" 
                    size="lg" 
                    onClick={handleSubmit}
-                   disabled={!selectedService || !date || !address || isSubmitting}
+                   disabled={!selectedService || !date || !time || !address || isSubmitting}
                  >
                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Send Booking Request"}
                  </Button>
