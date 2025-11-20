@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Menu, X, LayoutDashboard, LogOut, User, Search, Home, PlusCircle } from "lucide-react";
+import { Menu, X, LayoutDashboard, LogOut, User } from "lucide-react";
 import { useState } from "react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -25,7 +25,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background pb-16 md:pb-0">
+    <div className="min-h-screen flex flex-col bg-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           {/* Logo */}
@@ -61,7 +61,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </Link>
           </nav>
 
-          {/* Auth / User Menu (Desktop) */}
+          {/* Auth / User Menu */}
           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <DropdownMenu>
@@ -114,19 +114,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             )}
           </div>
 
-          {/* Mobile Menu Toggle (only for logged out state on mobile, or "more" menu) */}
-          {!user && (
-             <button
-               className="md:hidden p-2"
-               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-             >
-               {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-             </button>
-          )}
+          {/* Mobile Menu Toggle */}
+          <button
+            className="md:hidden p-2"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
         </div>
 
-        {/* Mobile Menu (Logged Out) */}
-        {isMobileMenuOpen && !user && (
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
           <div className="md:hidden border-t p-4 bg-background space-y-4">
             <nav className="flex flex-col gap-4">
               <Link href="/search">
@@ -140,12 +138,27 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </span>
               </Link>
               <div className="border-t pt-4 flex flex-col gap-2">
-                <Link href="/auth/login">
-                  <Button className="w-full" variant="secondary" onClick={() => setIsMobileMenuOpen(false)}>Log in</Button>
-                </Link>
-                <Link href="/auth/signup">
-                  <Button className="w-full" onClick={() => setIsMobileMenuOpen(false)}>Get Started</Button>
-                </Link>
+                {user ? (
+                  <>
+                    <Link href={`/${user.role}/dashboard`}>
+                       <Button className="w-full justify-start" variant="ghost" onClick={() => setIsMobileMenuOpen(false)}>
+                          <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
+                       </Button>
+                    </Link>
+                    <Button className="w-full justify-start text-red-600" variant="ghost" onClick={() => { logout(); setIsMobileMenuOpen(false); }}>
+                       <LogOut className="mr-2 h-4 w-4" /> Log out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/auth/login">
+                      <Button className="w-full" variant="secondary" onClick={() => setIsMobileMenuOpen(false)}>Log in</Button>
+                    </Link>
+                    <Link href="/auth/signup">
+                      <Button className="w-full" onClick={() => setIsMobileMenuOpen(false)}>Get Started</Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </nav>
           </div>
@@ -156,7 +169,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      <footer className="hidden md:block bg-muted/30 border-t py-12">
+      <footer className="bg-muted/30 border-t py-12">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
@@ -222,56 +235,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </footer>
-
-      {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t h-16 z-40 flex items-center justify-around px-2 pb-safe-area">
-        <Link href="/">
-          <div className={`flex flex-col items-center justify-center w-16 h-full ${location === '/' ? 'text-primary' : 'text-muted-foreground'}`}>
-            <Home className="h-5 w-5 mb-1" />
-            <span className="text-[10px] font-medium">Home</span>
-          </div>
-        </Link>
-        
-        <Link href="/search">
-          <div className={`flex flex-col items-center justify-center w-16 h-full ${location.startsWith('/search') ? 'text-primary' : 'text-muted-foreground'}`}>
-            <Search className="h-5 w-5 mb-1" />
-            <span className="text-[10px] font-medium">Search</span>
-          </div>
-        </Link>
-
-        {user ? (
-           <>
-             <Link href={`/${user.role}/dashboard`}>
-               <div className={`flex flex-col items-center justify-center w-16 h-full ${location.includes('dashboard') ? 'text-primary' : 'text-muted-foreground'}`}>
-                 <LayoutDashboard className="h-5 w-5 mb-1" />
-                 <span className="text-[10px] font-medium">Dash</span>
-               </div>
-             </Link>
-             
-             <Link href="/profile">
-                <div className={`flex flex-col items-center justify-center w-16 h-full ${location === '/profile' ? 'text-primary' : 'text-muted-foreground'}`}>
-                  <User className="h-5 w-5 mb-1" />
-                  <span className="text-[10px] font-medium">Profile</span>
-                </div>
-             </Link>
-             
-             <div 
-               className="flex flex-col items-center justify-center w-16 h-full text-muted-foreground cursor-pointer"
-               onClick={logout}
-             >
-               <LogOut className="h-5 w-5 mb-1" />
-               <span className="text-[10px] font-medium">Logout</span>
-             </div>
-           </>
-        ) : (
-           <Link href="/auth/login">
-             <div className={`flex flex-col items-center justify-center w-16 h-full ${location.startsWith('/auth') ? 'text-primary' : 'text-muted-foreground'}`}>
-               <User className="h-5 w-5 mb-1" />
-               <span className="text-[10px] font-medium">Log in</span>
-             </div>
-           </Link>
-        )}
-      </div>
     </div>
   );
 }

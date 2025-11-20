@@ -23,20 +23,20 @@ export default function CustomerDashboard() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 pb-20 md:pb-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold mb-1">My Bookings</h1>
+          <h1 className="text-3xl font-bold mb-2">My Bookings</h1>
           <p className="text-muted-foreground">Manage your service requests and history.</p>
         </div>
         <Link href="/search">
-          <Button size="lg" className="gap-2 w-full md:w-auto">
+          <Button size="lg" className="gap-2">
             <Search className="h-4 w-4" /> Find a Service
           </Button>
         </Link>
       </div>
 
-      <div className="grid gap-4 md:gap-6">
+      <div className="grid gap-6">
         {myBookings.length === 0 ? (
           <Card className="p-8 text-center">
              <div className="flex justify-center mb-4">
@@ -58,7 +58,7 @@ export default function CustomerDashboard() {
             return (
               <Card key={booking.id} className="overflow-hidden hover:shadow-md transition-shadow">
                 <div className="flex flex-col md:flex-row">
-                  <div className="p-4 md:p-6 flex-1">
+                  <div className="p-6 flex-1">
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="font-bold text-lg">{service?.title || 'Service'}</h3>
@@ -71,7 +71,7 @@ export default function CustomerDashboard() {
                       </Badge>
                     </div>
                     
-                    <div className="grid md:grid-cols-2 gap-2 md:gap-4 text-sm">
+                    <div className="grid md:grid-cols-2 gap-4 text-sm">
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Calendar className="h-4 w-4" />
                         <span>{new Date(booking.dateTime).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
@@ -93,8 +93,8 @@ export default function CustomerDashboard() {
                     )}
                   </div>
                   
-                  <div className="bg-muted/10 p-4 md:p-6 border-t md:border-t-0 md:border-l flex flex-col justify-center gap-3 min-w-[200px]">
-                     <div className="flex justify-between items-center md:block text-center md:text-left mb-2">
+                  <div className="bg-muted/10 p-6 border-t md:border-t-0 md:border-l flex flex-col justify-center gap-3 min-w-[200px]">
+                     <div className="text-center md:text-left mb-2">
                        <span className="text-sm text-muted-foreground">Total</span>
                        <div className="text-xl font-bold">${service?.price || 0}</div>
                      </div>
