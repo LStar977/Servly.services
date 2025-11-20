@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2, CheckCircle, CreditCard, Lock } from "lucide-react";
+import { CalendarIcon, Loader2, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Booking() {
@@ -25,18 +25,12 @@ export default function Booking() {
   
   const provider = mockProviders.find(p => p.id === providerId);
   
-  const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Success
+  const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState<Date>();
   const [selectedService, setSelectedService] = useState<string>("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
-
-  // Payment State
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvc, setCvc] = useState("");
-  const [zip, setZip] = useState("");
 
   if (!provider) {
     return (
@@ -47,30 +41,18 @@ export default function Booking() {
     );
   }
 
-  const handlePaymentSubmit = async () => {
+  const handleSubmit = async () => {
     setIsSubmitting(true);
-    // Simulate Payment Processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
     
     toast({
-      title: "Payment Successful",
-      description: `Your booking with ${provider.businessName} is confirmed.`,
+      title: "Booking Request Sent!",
+      description: `Your request has been sent to ${provider.businessName}.`,
     });
     
     setIsSubmitting(false);
     setStep(3); // Success step
-  };
-
-  const goToPayment = () => {
-    if (!selectedService || !date || !address) {
-      toast({
-         title: "Missing Details",
-         description: "Please fill in all required fields.",
-         variant: "destructive"
-      });
-      return;
-    }
-    setStep(2);
   };
 
   if (step === 3) {
@@ -79,10 +61,10 @@ export default function Booking() {
          <div className="h-24 w-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6 animate-in zoom-in duration-500">
            <CheckCircle className="h-12 w-12" />
          </div>
-         <h1 className="text-3xl font-bold mb-4">Booking Confirmed!</h1>
+         <h1 className="text-3xl font-bold mb-4">Request Sent!</h1>
          <p className="text-muted-foreground text-lg mb-8">
-           Your payment was processed successfully and your booking with <strong>{provider.businessName}</strong> is confirmed. 
-           You can track the status in your dashboard.
+           Your booking request has been sent to <strong>{provider.businessName}</strong>. 
+           They will review your request and confirm shortly. You can track the status in your dashboard.
          </p>
          <div className="flex gap-4">
            <Button variant="outline" onClick={() => setLocation('/')}>Return Home</Button>
@@ -94,186 +76,103 @@ export default function Booking() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
-      <Button variant="ghost" className="mb-6 pl-0 hover:pl-0 hover:bg-transparent text-muted-foreground" onClick={() => step === 1 ? setLocation('/search') : setStep(1)}>
-        ← {step === 1 ? "Back to Search" : "Back to Details"}
+      <Button variant="ghost" className="mb-6 pl-0 hover:pl-0 hover:bg-transparent text-muted-foreground" onClick={() => setLocation('/search')}>
+        ← Back to Search
       </Button>
 
       <div className="grid md:grid-cols-3 gap-8">
         {/* Main Form */}
         <div className="md:col-span-2 space-y-6">
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold">{step === 1 ? "Request Booking" : "Payment"}</h1>
-            <p className="text-muted-foreground">{step === 1 ? "Complete the form below to request a service." : "Securely enter your payment details."}</p>
+            <h1 className="text-3xl font-bold">Request Booking</h1>
+            <p className="text-muted-foreground">Complete the form below to request a service.</p>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>
-                 <div className="flex items-center justify-between">
-                   <span>{step === 1 ? "1. Service Details" : "2. Payment Details"}</span>
-                   <div className="flex gap-2">
-                     <div className={`h-2 w-8 rounded-full ${step >= 1 ? 'bg-primary' : 'bg-muted'}`}></div>
-                     <div className={`h-2 w-8 rounded-full ${step >= 2 ? 'bg-primary' : 'bg-muted'}`}></div>
-                     <div className={`h-2 w-8 rounded-full ${step >= 3 ? 'bg-primary' : 'bg-muted'}`}></div>
-                   </div>
-                 </div>
-              </CardTitle>
+              <CardTitle>1. Service Details</CardTitle>
             </CardHeader>
-            
-            {step === 1 && (
-              <CardContent className="space-y-6 animate-in slide-in-from-left-4 duration-300">
-                <div className="space-y-3">
-                  <Label>Select Service</Label>
-                  <RadioGroup value={selectedService} onValueChange={setSelectedService}>
-                    {provider.services.map(service => (
-                      <div key={service.id} className={`flex items-center justify-between border rounded-lg p-4 cursor-pointer hover:bg-muted/50 transition-colors ${selectedService === service.id ? 'border-primary bg-primary/5' : ''}`}>
-                        <div className="flex items-center space-x-3">
-                          <RadioGroupItem value={service.id} id={service.id} />
-                          <Label htmlFor={service.id} className="cursor-pointer">
-                            <div className="font-medium">{service.title}</div>
-                            <div className="text-sm text-muted-foreground">{service.description}</div>
-                          </Label>
-                        </div>
-                        <div className="font-bold">
-                          ${service.price}
-                        </div>
+            <CardContent className="space-y-6">
+              <div className="space-y-3">
+                <Label>Select Service</Label>
+                <RadioGroup value={selectedService} onValueChange={setSelectedService}>
+                  {provider.services.map(service => (
+                    <div key={service.id} className={`flex items-center justify-between border rounded-lg p-4 cursor-pointer hover:bg-muted/50 transition-colors ${selectedService === service.id ? 'border-primary bg-primary/5' : ''}`}>
+                      <div className="flex items-center space-x-3">
+                        <RadioGroupItem value={service.id} id={service.id} />
+                        <Label htmlFor={service.id} className="cursor-pointer">
+                          <div className="font-medium">{service.title}</div>
+                          <div className="text-sm text-muted-foreground">{service.description}</div>
+                        </Label>
                       </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label>Preferred Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !date && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        initialFocus
-                        disabled={(date) => date < new Date()}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label>Service Address</Label>
-                  <Input 
-                    placeholder="123 Main St, City, State" 
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label>Notes for Provider (Optional)</Label>
-                  <Textarea 
-                    placeholder="Any special instructions, gate codes, or details about the job..." 
-                    rows={4}
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                  />
-                </div>
-              </CardContent>
-            )}
-
-            {step === 2 && (
-               <CardContent className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                  <div className="bg-muted/30 p-4 rounded-lg border flex items-center gap-3 mb-6">
-                    <Lock className="h-5 w-5 text-primary" />
-                    <p className="text-sm text-muted-foreground">Payments are secure and encrypted. You won't be charged until the job is completed.</p>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="grid gap-2">
-                       <Label>Card Information</Label>
-                       <div className="relative">
-                          <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input 
-                             placeholder="0000 0000 0000 0000" 
-                             className="pl-9" 
-                             value={cardNumber}
-                             onChange={(e) => setCardNumber(e.target.value)}
-                          />
-                       </div>
+                      <div className="font-bold">
+                        ${service.price}
+                      </div>
                     </div>
-                    
-                    <div className="grid grid-cols-3 gap-4">
-                       <div className="grid gap-2">
-                          <Label>Expiry</Label>
-                          <Input 
-                             placeholder="MM/YY" 
-                             value={expiry}
-                             onChange={(e) => setExpiry(e.target.value)}
-                          />
-                       </div>
-                       <div className="grid gap-2">
-                          <Label>CVC</Label>
-                          <Input 
-                             placeholder="123" 
-                             value={cvc}
-                             onChange={(e) => setCvc(e.target.value)}
-                          />
-                       </div>
-                       <div className="grid gap-2">
-                          <Label>Zip Code</Label>
-                          <Input 
-                             placeholder="12345" 
-                             value={zip}
-                             onChange={(e) => setZip(e.target.value)}
-                          />
-                       </div>
-                    </div>
-                  </div>
-                  
-                  <div className="pt-4">
-                     <div className="flex items-center justify-between font-bold text-lg mb-2">
-                        <span>Total to Pay</span>
-                        <span>${provider.services.find(s => s.id === selectedService)?.price}</span>
-                     </div>
-                     <p className="text-xs text-muted-foreground">Includes all taxes and fees.</p>
-                  </div>
-               </CardContent>
-            )}
+                  ))}
+                </RadioGroup>
+              </div>
 
+              <div className="grid gap-2">
+                <Label>Preferred Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !date && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {date ? format(date, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      initialFocus
+                      disabled={(date) => date < new Date()}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Service Address</Label>
+                <Input 
+                  placeholder="123 Main St, City, State" 
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Notes for Provider (Optional)</Label>
+                <Textarea 
+                  placeholder="Any special instructions, gate codes, or details about the job..." 
+                  rows={4}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
+              </div>
+            </CardContent>
             <CardFooter>
                {!user ? (
                  <div className="w-full bg-yellow-50 border border-yellow-200 p-4 rounded-lg text-center text-yellow-800">
                    Please <Link href="/auth/login"><span className="font-bold hover:underline cursor-pointer">log in</span></Link> or <Link href="/auth/signup"><span className="font-bold hover:underline cursor-pointer">sign up</span></Link> to book this service.
                  </div>
                ) : (
-                 step === 1 ? (
-                    <Button 
-                      className="w-full" 
-                      size="lg" 
-                      onClick={goToPayment}
-                      disabled={!selectedService || !date || !address}
-                    >
-                      Continue to Payment
-                    </Button>
-                 ) : (
-                    <Button 
-                      className="w-full" 
-                      size="lg" 
-                      onClick={handlePaymentSubmit}
-                      disabled={isSubmitting || !cardNumber || !expiry || !cvc}
-                    >
-                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : `Pay $${provider.services.find(s => s.id === selectedService)?.price}`}
-                    </Button>
-                 )
+                 <Button 
+                   className="w-full" 
+                   size="lg" 
+                   onClick={handleSubmit}
+                   disabled={!selectedService || !date || !address || isSubmitting}
+                 >
+                   {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Send Booking Request"}
+                 </Button>
                )}
             </CardFooter>
           </Card>
