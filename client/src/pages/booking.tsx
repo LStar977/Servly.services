@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import { useAuth } from "@/lib/auth";
-import { mockProviders, categories } from "@/lib/data";
+import { mockProviders } from "@/lib/data";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2, CheckCircle, Clock } from "lucide-react";
+import { CalendarIcon, Loader2, CheckCircle, Clock, MapPin, CreditCard, Navigation, Apple } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Booking() {
@@ -32,6 +32,7 @@ export default function Booking() {
   const [selectedService, setSelectedService] = useState<string>("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("card");
 
   if (!provider) {
     return (
@@ -42,14 +43,14 @@ export default function Booking() {
     );
   }
 
-  const handleSubmit = async () => {
+  const handlePaymentAndBooking = async () => {
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Simulate Payment Processing and API call
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
     toast({
-      title: "Booking Request Sent!",
-      description: `Your request has been sent to ${provider.businessName} for ${date ? format(date, "MMM d") : ''} at ${time}.`,
+      title: "Payment Successful & Booking Confirmed!",
+      description: `Your appointment with ${provider.businessName} is confirmed for ${date ? format(date, "MMM d") : ''} at ${time}.`,
     });
     
     setIsSubmitting(false);
@@ -76,19 +77,86 @@ export default function Booking() {
   const timeSlots = generateTimeSlots();
 
   if (step === 3) {
+    const isMobileService = provider.locationType === 'mobile';
+    
     return (
-      <div className="container mx-auto px-4 py-16 flex flex-col items-center justify-center text-center max-w-lg">
-         <div className="h-24 w-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6 animate-in zoom-in duration-500">
-           <CheckCircle className="h-12 w-12" />
+      <div className="container mx-auto px-4 py-12 flex flex-col items-center text-center max-w-2xl animate-in fade-in duration-700">
+         <div className="h-20 w-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6 shadow-sm">
+           <CheckCircle className="h-10 w-10" />
          </div>
-         <h1 className="text-3xl font-bold mb-4">Request Sent!</h1>
+         <h1 className="text-3xl font-bold mb-2">Booking Confirmed!</h1>
          <p className="text-muted-foreground text-lg mb-8">
-           Your booking request has been sent to <strong>{provider.businessName}</strong>. 
-           They will review your request and confirm shortly. You can track the status in your dashboard.
+           You're all set for <strong>{date ? format(date, "MMMM do") : ''}</strong> at <strong>{time}</strong>.
          </p>
+
+         <Card className="w-full overflow-hidden mb-8 shadow-lg border-muted">
+            <div className="h-64 bg-slate-100 relative w-full flex items-center justify-center">
+                {/* Simulated Map View */}
+                <div className="absolute inset-0 bg-[url('https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fmedia.wired.com%2Fphotos%2F59269cd37034dc5f91bec0f1%2Fmaster%2Fpass%2FGoogleMapTA.jpg&f=1&nofb=1&ipt=b63d6c782249f792e0020505a0022b8b72589d5736489d498826049898530638&ipo=images')] bg-cover bg-center opacity-80"></div>
+                
+                <div className="absolute inset-0 bg-black/10"></div>
+                
+                {isMobileService ? (
+                  <div className="relative z-10 bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-xl max-w-xs mx-auto">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                         <Navigation className="h-5 w-5" />
+                      </div>
+                      <div className="text-left">
+                        <div className="font-bold text-sm">Provider is nearby</div>
+                        <div className="text-xs text-muted-foreground">Est. arrival: On time</div>
+                      </div>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2 mb-1">
+                      <div className="bg-blue-600 h-1.5 rounded-full w-[35%]"></div>
+                    </div>
+                    <div className="flex justify-between text-[10px] text-muted-foreground font-medium">
+                      <span>Provider HQ</span>
+                      <span>Your Location</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative z-10 bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-xl max-w-xs mx-auto">
+                     <div className="flex items-center gap-3 mb-4">
+                        <MapPin className="h-8 w-8 text-red-500 fill-red-500" />
+                        <div className="text-left">
+                          <div className="font-bold">{provider.businessName}</div>
+                          <div className="text-xs text-muted-foreground">{provider.address || provider.city}</div>
+                        </div>
+                     </div>
+                     <div className="grid grid-cols-2 gap-2">
+                        <Button size="sm" variant="outline" className="text-xs h-8" onClick={() => window.open(`https://maps.apple.com/?q=${provider.businessName}`)}>
+                           <Apple className="h-3 w-3 mr-1" /> Apple Maps
+                        </Button>
+                        <Button size="sm" variant="outline" className="text-xs h-8" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${provider.businessName}`)}>
+                           <MapPin className="h-3 w-3 mr-1" /> Google Maps
+                        </Button>
+                     </div>
+                  </div>
+                )}
+            </div>
+            <CardContent className="p-6 text-left">
+              <h3 className="font-semibold mb-4">Booking Details</h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between border-b pb-2">
+                  <span className="text-muted-foreground">Service</span>
+                  <span className="font-medium">{provider.services.find(s => s.id === selectedService)?.title}</span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="text-muted-foreground">Provider</span>
+                  <span className="font-medium">{provider.businessName}</span>
+                </div>
+                <div className="flex justify-between pt-1">
+                  <span className="font-semibold">Total Paid</span>
+                  <span className="font-bold text-green-600">${provider.services.find(s => s.id === selectedService)?.price}</span>
+                </div>
+              </div>
+            </CardContent>
+         </Card>
+
          <div className="flex gap-4">
            <Button variant="outline" onClick={() => setLocation('/')}>Return Home</Button>
-           <Button onClick={() => setLocation('/customer/dashboard')}>Go to Dashboard</Button>
+           <Button onClick={() => setLocation('/customer/dashboard')}>View Dashboard</Button>
          </div>
       </div>
     );
@@ -104,8 +172,8 @@ export default function Booking() {
         {/* Main Form */}
         <div className="md:col-span-2 space-y-6">
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold">Request Booking</h1>
-            <p className="text-muted-foreground">Complete the form below to request a service.</p>
+            <h1 className="text-3xl font-bold">Complete Booking</h1>
+            <p className="text-muted-foreground">Select your service, time, and complete payment.</p>
           </div>
 
           <Card>
@@ -135,7 +203,7 @@ export default function Booking() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label>Preferred Date</Label>
+                  <Label>Date</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -162,7 +230,7 @@ export default function Booking() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label>Preferred Time</Label>
+                  <Label>Time</Label>
                   <Select onValueChange={setTime} value={time}>
                     <SelectTrigger className={cn(!time && "text-muted-foreground")}>
                       <div className="flex items-center">
@@ -189,14 +257,80 @@ export default function Booking() {
               </div>
 
               <div className="grid gap-2">
-                <Label>Notes for Provider (Optional)</Label>
+                <Label>Notes (Optional)</Label>
                 <Textarea 
-                  placeholder="Any special instructions, gate codes, or details about the job..." 
-                  rows={4}
+                  placeholder="Any special instructions..." 
+                  rows={2}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Payment Section - Integrated directly */}
+          <Card>
+            <CardHeader>
+               <CardTitle>2. Payment</CardTitle>
+            </CardHeader>
+            <CardContent>
+               <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-2 gap-4 mb-6">
+                 <div>
+                   <RadioGroupItem value="card" id="card" className="peer sr-only" />
+                   <Label
+                     htmlFor="card"
+                     className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all"
+                   >
+                     <CreditCard className="mb-3 h-6 w-6" />
+                     Credit Card
+                   </Label>
+                 </div>
+                 <div>
+                   <RadioGroupItem value="apple" id="apple" className="peer sr-only" />
+                   <Label
+                     htmlFor="apple"
+                     className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all"
+                   >
+                     <Apple className="mb-3 h-6 w-6" />
+                     Apple Pay
+                   </Label>
+                 </div>
+               </RadioGroup>
+
+               {paymentMethod === 'card' && (
+                 <div className="grid gap-4 animate-in fade-in slide-in-from-top-2">
+                   <div className="grid gap-2">
+                     <Label htmlFor="name">Name on Card</Label>
+                     <Input id="name" placeholder="John Doe" />
+                   </div>
+                   <div className="grid gap-2">
+                     <Label htmlFor="number">Card Number</Label>
+                     <Input id="number" placeholder="0000 0000 0000 0000" />
+                   </div>
+                   <div className="grid grid-cols-3 gap-2">
+                     <div className="grid gap-2">
+                       <Label htmlFor="month">Expires</Label>
+                       <Input id="month" placeholder="MM/YY" />
+                     </div>
+                     <div className="grid gap-2">
+                       <Label htmlFor="cvc">CVC</Label>
+                       <Input id="cvc" placeholder="123" />
+                     </div>
+                     <div className="grid gap-2">
+                       <Label htmlFor="zip">Zip</Label>
+                       <Input id="zip" placeholder="12345" />
+                     </div>
+                   </div>
+                 </div>
+               )}
+
+               {paymentMethod === 'apple' && (
+                  <div className="py-6 text-center bg-muted/30 rounded-lg border animate-in fade-in slide-in-from-top-2">
+                     <div className="bg-black text-white inline-flex items-center px-6 py-3 rounded-lg font-medium cursor-pointer hover:opacity-90 transition-opacity">
+                        <Apple className="w-5 h-5 mr-2" /> Pay with Apple Pay
+                     </div>
+                  </div>
+               )}
             </CardContent>
             <CardFooter>
                {!user ? (
@@ -205,12 +339,16 @@ export default function Booking() {
                  </div>
                ) : (
                  <Button 
-                   className="w-full" 
+                   className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-lg" 
                    size="lg" 
-                   onClick={handleSubmit}
+                   onClick={handlePaymentAndBooking}
                    disabled={!selectedService || !date || !time || !address || isSubmitting}
                  >
-                   {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Send Booking Request"}
+                   {isSubmitting ? (
+                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing Payment...</>
+                   ) : (
+                     `Pay $${provider.services.find(s => s.id === selectedService)?.price || 0} & Book`
+                   )}
                  </Button>
                )}
             </CardFooter>
@@ -221,12 +359,16 @@ export default function Booking() {
         <div>
           <Card className="sticky top-24">
             <CardHeader>
-              <CardTitle className="text-lg">Provider Summary</CardTitle>
+              <CardTitle className="text-lg">Booking Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary text-lg font-bold">
-                  {provider.businessName.charAt(0)}
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary text-lg font-bold overflow-hidden">
+                  {provider.imageUrl ? (
+                    <img src={provider.imageUrl} alt={provider.businessName} className="h-full w-full object-cover" />
+                  ) : (
+                    provider.businessName.charAt(0)
+                  )}
                 </div>
                 <div>
                   <div className="font-bold">{provider.businessName}</div>
@@ -235,23 +377,32 @@ export default function Booking() {
               </div>
               
               <div className="space-y-2 pt-4 border-t text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Rating</span>
-                  <span className="font-medium">★ {provider.rating} ({provider.reviewCount})</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Response Time</span>
-                  <span className="font-medium">~1 hour</span>
-                </div>
+                {selectedService && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Service</span>
+                    <span className="font-medium">{provider.services.find(s => s.id === selectedService)?.title}</span>
+                  </div>
+                )}
+                {date && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Date</span>
+                    <span className="font-medium">{format(date, "MMM d, yyyy")}</span>
+                  </div>
+                )}
+                {time && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Time</span>
+                    <span className="font-medium">{time}</span>
+                  </div>
+                )}
               </div>
 
               {selectedService && (
                  <div className="pt-4 border-t">
                    <div className="flex justify-between font-bold text-lg">
-                     <span>Total Estimate</span>
+                     <span>Total</span>
                      <span>${provider.services.find(s => s.id === selectedService)?.price}</span>
                    </div>
-                   <p className="text-xs text-muted-foreground mt-1">Final price may vary based on onsite assessment.</p>
                  </div>
               )}
             </CardContent>

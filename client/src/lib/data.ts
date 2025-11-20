@@ -41,6 +41,8 @@ export interface ProviderProfile {
   services: Service[];
   availability: string[]; // e.g., ["Mon", "Tue", "Wed"]
   imageUrl?: string;
+  locationType: 'mobile' | 'location'; // 'mobile' = comes to you, 'location' = you go to them
+  address?: string; // For 'location' type
 }
 
 export interface Booking {
@@ -80,6 +82,7 @@ export const mockUsers: User[] = [
   { id: 'u2', name: 'Bob Provider', email: 'bob@sparkleclean.com', role: 'provider', createdAt: '2023-02-20' },
   { id: 'u3', name: 'Charlie Admin', email: 'admin@servly.com', role: 'admin', createdAt: '2023-01-01' },
   { id: 'u4', name: 'Dave Plumber', email: 'dave@pipes.com', role: 'provider', createdAt: '2023-03-10' },
+  { id: 'u5', name: 'Eve Mechanic', email: 'eve@autoshop.com', role: 'provider', createdAt: '2023-04-15' },
 ];
 
 export const mockProviders: ProviderProfile[] = [
@@ -98,7 +101,8 @@ export const mockProviders: ProviderProfile[] = [
       { id: 's2', title: 'Deep Clean', description: 'Thorough cleaning of all surfaces, inside appliances', price: 250, priceUnit: 'visit', categoryId: 'cat_1' },
     ],
     availability: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-    imageUrl: homeCleaningImg
+    imageUrl: homeCleaningImg,
+    locationType: 'mobile'
   },
   {
     id: 'p2',
@@ -115,7 +119,27 @@ export const mockProviders: ProviderProfile[] = [
       { id: 's4', title: 'Drain Unclogging', description: 'Clearing stopped drains', price: 100, priceUnit: 'visit', categoryId: 'cat_2' },
     ],
     availability: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-    imageUrl: plumbingImg
+    imageUrl: plumbingImg,
+    locationType: 'mobile'
+  },
+  {
+    id: 'p3',
+    userId: 'u5',
+    businessName: 'Prestige Auto Detail Shop',
+    description: 'Premium auto detailing studio. Bring your car to us for a showroom shine.',
+    phone: '555-0303',
+    city: 'San Jose, CA',
+    address: '456 Car Lane, San Jose, CA',
+    rating: 4.7,
+    reviewCount: 45,
+    categories: ['cat_6'],
+    services: [
+      { id: 's5', title: 'Full Interior Detail', description: 'Deep clean of all interior surfaces', price: 180, priceUnit: 'visit', categoryId: 'cat_6' },
+      { id: 's6', title: 'Exterior Polish', description: 'Wash, clay bar, and machine polish', price: 200, priceUnit: 'visit', categoryId: 'cat_6' },
+    ],
+    availability: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    imageUrl: automotiveImg,
+    locationType: 'location'
   }
 ];
 
