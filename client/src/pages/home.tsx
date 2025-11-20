@@ -70,8 +70,6 @@ export default function Home() {
             </div>
             
             <div className="relative lg:h-[600px] h-[400px] animate-in fade-in zoom-in duration-1000 delay-200 hidden lg:block">
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent rounded-3xl transform rotate-3"></div>
-              
               <Carousel 
                 plugins={[
                   Autoplay({
@@ -97,9 +95,6 @@ export default function Home() {
                                <p className="text-white font-heading font-bold text-3xl mb-2">{category.name}</p>
                                <p className="text-white/80 text-lg">Book instant {category.name} services</p>
                              </div>
-                             <Button variant="secondary" className="rounded-full h-12 w-12 p-0 flex items-center justify-center">
-                               <ArrowRight className="w-5 h-5" />
-                             </Button>
                            </div>
                         </div>
                       </div>
