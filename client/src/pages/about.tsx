@@ -1,8 +1,57 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Link } from "wouter";
-import { Rocket, Clock, ArrowRight } from "lucide-react";
+import { Rocket, Clock, ArrowRight, CheckCircle, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 export default function About() {
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const { toast } = useToast();
+
+  const handleJoinWaitlist = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !email.includes("@")) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Assuming the table name is 'waitlist' and column is 'email'
+      const { error } = await supabase
+        .from('waitlist')
+        .insert([{ email }]);
+
+      if (error) throw error;
+
+      setIsSubmitted(true);
+      toast({
+        title: "Welcome to the list!",
+        description: "You've been added to the Servly waitlist.",
+      });
+      setEmail("");
+    } catch (error: any) {
+      console.error('Error joining waitlist:', error);
+      toast({
+        title: "Something went wrong",
+        description: error.message || "Could not add you to the waitlist. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
@@ -47,7 +96,7 @@ export default function About() {
                       We’re building our provider community and preparing for launch. Join the waitlist to be first in line.
                    </p>
                    
-                   <div className="space-y-4 w-full">
+                   <div className="space-y-4 w-full mb-8">
                       <div className="flex items-center gap-3 text-slate-300">
                          <div className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse"></div>
                          <span>Provider onboarding in progress</span>
@@ -55,9 +104,28 @@ export default function About() {
                       <div className="w-full h-px bg-white/10"></div>
                    </div>
 
-                   <Button size="lg" className="w-full mt-8 h-12 text-lg bg-white text-slate-900 hover:bg-white/90 font-bold">
-                      Join the Waitlist <ArrowRight className="ml-2 w-4 h-4" />
-                   </Button>
+                   {isSubmitted ? (
+                     <div className="w-full p-4 bg-green-500/20 border border-green-500/50 rounded-xl flex items-center gap-3 text-green-300 animate-in fade-in">
+                       <CheckCircle className="w-6 h-6" />
+                       <span className="font-bold">You're on the list! We'll be in touch.</span>
+                     </div>
+                   ) : (
+                     <form onSubmit={handleJoinWaitlist} className="w-full space-y-3">
+                       <div className="flex flex-col sm:flex-row gap-3">
+                         <Input 
+                           placeholder="Enter your email address" 
+                           className="h-12 text-lg bg-white/10 border-white/20 text-white placeholder:text-white/50 focus-visible:ring-white/30"
+                           value={email}
+                           onChange={(e) => setEmail(e.target.value)}
+                           disabled={isLoading}
+                         />
+                         <Button size="lg" type="submit" className="h-12 px-8 text-lg bg-white text-slate-900 hover:bg-white/90 font-bold shrink-0" disabled={isLoading}>
+                            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Join Waitlist <ArrowRight className="ml-2 w-4 h-4" /></>}
+                         </Button>
+                       </div>
+                       <p className="text-xs text-slate-400 pl-1">We'll never share your email. Unsubscribe anytime.</p>
+                     </form>
+                   )}
                 </div>
              </div>
           </div>
@@ -101,7 +169,12 @@ export default function About() {
               <p className="text-muted-foreground mb-8">Join the waitlist to get early access when we launch.</p>
               
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                 <Button size="lg" className="w-full sm:w-auto">Join the Waitlist</Button>
+                 <Link href="#waitlist-form" onClick={(e) => {
+                   e.preventDefault();
+                   document.querySelector('.bg-slate-900')?.scrollIntoView({ behavior: 'smooth' });
+                 }}>
+                   <Button size="lg" className="w-full sm:w-auto">Join the Waitlist</Button>
+                 </Link>
                  <Link href="/auth/signup?role=provider">
                     <Button size="lg" variant="outline" className="w-full sm:w-auto">Sign up as a Provider</Button>
                  </Link>
@@ -116,7 +189,12 @@ export default function About() {
           <h2 className="text-3xl font-bold mb-6">Join the movement</h2>
           <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">Whether you're a customer looking for help or a pro looking for work, there's a place for you here.</p>
           <div className="flex justify-center gap-4">
-             <Button size="lg">Join Waitlist</Button>
+             <Link href="#waitlist-form" onClick={(e) => {
+               e.preventDefault();
+               document.querySelector('.bg-slate-900')?.scrollIntoView({ behavior: 'smooth' });
+             }}>
+               <Button size="lg">Join Waitlist</Button>
+             </Link>
              <Link href="/auth/signup?role=provider">
                <Button size="lg" variant="outline">Join as Provider</Button>
              </Link>
