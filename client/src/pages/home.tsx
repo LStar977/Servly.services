@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Star, ShieldCheck, Sparkles, Trees, Car, Dog, Snowflake, Wrench, Zap, Truck, Search, Calendar, CheckCircle, Award, Lock, ThumbsUp, Bot, MapPin } from "lucide-react";
+import { ArrowRight, Star, ShieldCheck, Sparkles, Trees, Car, Dog, Snowflake, Wrench, Zap, Truck, Search, Calendar, CheckCircle, Award, Lock, ThumbsUp, Bot, MapPin, Heart } from "lucide-react";
 import { categories, mockProviders } from "@/lib/data";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
@@ -121,28 +121,45 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Social Proof Section */}
-      <section className="border-y bg-muted/20 py-8">
+      {/* Platform Pillars Section (Replaces Stats) */}
+      <section className="border-y bg-muted/20 py-10">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center text-center">
-             <div>
-               <div className="text-3xl font-bold text-primary mb-1">1,200+</div>
-               <div className="text-sm text-muted-foreground font-medium">Verified Providers</div>
-             </div>
-             <div>
-               <div className="text-3xl font-bold text-primary mb-1">50k+</div>
-               <div className="text-sm text-muted-foreground font-medium">Completed Services</div>
-             </div>
-             <div>
-               <div className="flex items-center justify-center gap-1 mb-1">
-                  <Star className="w-6 h-6 fill-yellow-400 text-yellow-400" />
-                  <span className="text-3xl font-bold">4.9</span>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+             <div className="flex flex-col items-center gap-3">
+               <div className="bg-blue-100 text-blue-600 p-3 rounded-full">
+                 <ShieldCheck className="w-6 h-6" />
                </div>
-               <div className="text-sm text-muted-foreground font-medium">Average Rating</div>
+               <div>
+                 <div className="font-bold text-lg">Verified Pros</div>
+                 <div className="text-sm text-muted-foreground">Rigorous background checks</div>
+               </div>
              </div>
-             <div className="flex justify-center gap-2 opacity-50 grayscale">
-                {/* Placeholder Logos */}
-                <div className="font-heading font-bold text-xl">TechCrunch</div>
+             <div className="flex flex-col items-center gap-3">
+               <div className="bg-green-100 text-green-600 p-3 rounded-full">
+                 <Lock className="w-6 h-6" />
+               </div>
+               <div>
+                 <div className="font-bold text-lg">Secure & Safe</div>
+                 <div className="text-sm text-muted-foreground">Protected payments & data</div>
+               </div>
+             </div>
+             <div className="flex flex-col items-center gap-3">
+               <div className="bg-yellow-100 text-yellow-600 p-3 rounded-full">
+                 <Star className="w-6 h-6" />
+               </div>
+               <div>
+                 <div className="font-bold text-lg">Quality First</div>
+                 <div className="text-sm text-muted-foreground">Top-rated service standards</div>
+               </div>
+             </div>
+             <div className="flex flex-col items-center gap-3">
+               <div className="bg-purple-100 text-purple-600 p-3 rounded-full">
+                 <Heart className="w-6 h-6" />
+               </div>
+               <div>
+                 <div className="font-bold text-lg">Community</div>
+                 <div className="text-sm text-muted-foreground">Supporting local businesses</div>
+               </div>
              </div>
           </div>
         </div>
