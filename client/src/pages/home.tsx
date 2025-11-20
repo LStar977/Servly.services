@@ -188,8 +188,11 @@ export default function Home() {
          <div className="container mx-auto px-4 relative z-10">
             <div className="grid md:grid-cols-2 gap-12 items-center">
                <div>
-                  <div className="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5 text-sm font-medium mb-6 border border-white/20">
-                     <Bot className="w-4 h-4" /> Servly Assist
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5 text-sm font-medium border border-white/20">
+                       <Bot className="w-4 h-4" /> Servly Assist
+                    </div>
+                    <span className="text-xs font-bold bg-gradient-to-r from-indigo-400 to-purple-400 text-white px-2 py-1 rounded-md uppercase tracking-wider">Coming Soon</span>
                   </div>
                   <h2 className="text-3xl md:text-5xl font-heading font-bold mb-6">Meet your personal service concierge.</h2>
                   <p className="text-xl text-slate-300 mb-8 leading-relaxed">
