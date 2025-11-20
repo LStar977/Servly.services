@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Link } from "wouter";
 import { Check, Calendar, Users, CreditCard, BarChart3, MessageSquare, Bell, Megaphone, Truck, Wrench, Zap, Shield, BadgeCheck } from "lucide-react";
-import generatedImage from '@assets/generated_images/clean_white_ui_dashboard_mockup_for_service_business_command_center.png';
+import commandCenterImage from '@assets/servly_command_center_v2.png';
 
 export default function ForBusiness() {
   return (
@@ -198,11 +198,11 @@ export default function ForBusiness() {
                 ))}
               </ul>
             </div>
-            <div className="relative">
+            <div className="relative flex items-center justify-center">
                <img 
-                 src={generatedImage} 
+                 src={commandCenterImage} 
                  alt="Servly Command Center Dashboard" 
-                 className="w-full h-auto rounded-2xl shadow-2xl border border-white/10 transform hover:scale-[1.02] transition-transform duration-500" 
+                 className="w-full max-w-[600px] h-auto rounded-xl shadow-2xl transform hover:scale-[1.02] transition-transform duration-500" 
                />
             </div>
           </div>
