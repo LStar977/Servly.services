@@ -1,11 +1,49 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Mail, MessageSquare, Phone } from "lucide-react";
+import { Mail, MessageSquare, Phone, Loader2, CheckCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Contact() {
+  const { toast } = useToast();
+  const [isContactSubmitting, setIsContactSubmitting] = useState(false);
+  const [isProviderSubmitting, setIsProviderSubmitting] = useState(false);
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsContactSubmitting(true);
+    
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    toast({
+      title: "Message Sent!",
+      description: "We'll get back to you as soon as possible.",
+    });
+    
+    setIsContactSubmitting(false);
+    (e.target as HTMLFormElement).reset();
+  };
+
+  const handleProviderSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsProviderSubmitting(true);
+    
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    toast({
+      title: "Application Received!",
+      description: "Thanks for your interest in joining Servly Pro.",
+    });
+    
+    setIsProviderSubmitting(false);
+    (e.target as HTMLFormElement).reset();
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <section className="py-12 bg-muted/30">
@@ -27,25 +65,30 @@ export default function Contact() {
               
               <Card>
                 <CardContent className="pt-6 space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Name</Label>
-                      <Input placeholder="Your name" />
+                  <form onSubmit={handleContactSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="contact-name">Name</Label>
+                        <Input id="contact-name" placeholder="Your name" required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="contact-email">Email</Label>
+                        <Input id="contact-email" type="email" placeholder="your@email.com" required />
+                      </div>
                     </div>
                     <div className="space-y-2">
-                      <Label>Email</Label>
-                      <Input placeholder="your@email.com" />
+                      <Label htmlFor="contact-subject">Subject</Label>
+                      <Input id="contact-subject" placeholder="How can we help?" required />
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Subject</Label>
-                    <Input placeholder="How can we help?" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Message</Label>
-                    <Textarea placeholder="Tell us more..." rows={5} />
-                  </div>
-                  <Button className="w-full">Send Message</Button>
+                    <div className="space-y-2">
+                      <Label htmlFor="contact-message">Message</Label>
+                      <Textarea id="contact-message" placeholder="Tell us more..." rows={5} required />
+                    </div>
+                    <Button className="w-full" disabled={isContactSubmitting}>
+                      {isContactSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                      Send Message
+                    </Button>
+                  </form>
                 </CardContent>
               </Card>
 
@@ -56,7 +99,7 @@ export default function Contact() {
                          <Mail className="h-5 w-5" />
                        </div>
                        <div className="font-bold">Email Support</div>
-                       <div className="text-sm text-blue-700">support@servly.com</div>
+                       <a href="mailto:support@servly.com" className="text-sm text-blue-700 hover:underline">support@servly.com</a>
                     </CardContent>
                  </Card>
                  <Card className="bg-green-50 border-green-100">
@@ -84,31 +127,36 @@ export default function Contact() {
                   <CardDescription>Start your journey with Servly Pro</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6 space-y-4">
-                  <div className="space-y-2">
-                    <Label>Business Name</Label>
-                    <Input placeholder="e.g. Joe's Plumbing" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <form onSubmit={handleProviderSubmit} className="space-y-4">
                     <div className="space-y-2">
-                      <Label>Service Category</Label>
-                      <Input placeholder="e.g. Plumbing" />
+                      <Label htmlFor="biz-name">Business Name</Label>
+                      <Input id="biz-name" placeholder="e.g. Joe's Plumbing" required />
                     </div>
-                    <div className="space-y-2">
-                      <Label>Service Area</Label>
-                      <Input placeholder="e.g. Chicago, IL" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="biz-category">Service Category</Label>
+                        <Input id="biz-category" placeholder="e.g. Plumbing" required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="biz-area">Service Area</Label>
+                        <Input id="biz-area" placeholder="e.g. Chicago, IL" required />
+                      </div>
                     </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Phone</Label>
-                      <Input placeholder="(555) 000-0000" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="biz-phone">Phone</Label>
+                        <Input id="biz-phone" type="tel" placeholder="(555) 000-0000" required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="biz-email">Email</Label>
+                        <Input id="biz-email" type="email" placeholder="business@email.com" required />
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Email</Label>
-                      <Input placeholder="business@email.com" />
-                    </div>
-                  </div>
-                  <Button size="lg" className="w-full" variant="default">Submit Application</Button>
+                    <Button size="lg" className="w-full" variant="default" disabled={isProviderSubmitting}>
+                      {isProviderSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                      Submit Application
+                    </Button>
+                  </form>
                 </CardContent>
               </Card>
             </div>
