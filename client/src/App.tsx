@@ -13,6 +13,7 @@ import Login from "@/pages/auth/login";
 import Signup from "@/pages/auth/signup";
 import Search from "@/pages/search";
 import Booking from "@/pages/booking";
+import Profile from "@/pages/profile";
 import CustomerDashboard from "@/pages/customer/dashboard";
 import ProviderDashboard from "@/pages/provider/dashboard";
 import AdminDashboard from "@/pages/admin/dashboard";
@@ -35,6 +36,7 @@ function Router() {
         {/* Main Flows */}
         <Route path="/search" component={Search} />
         <Route path="/booking" component={Booking} />
+        <Route path="/profile" component={Profile} />
         
         {/* Informational Pages */}
         <Route path="/how-it-works" component={HowItWorks} />
