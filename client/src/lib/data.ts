@@ -43,6 +43,10 @@ export interface ProviderProfile {
   imageUrl?: string;
   locationType: 'mobile' | 'location'; // 'mobile' = comes to you, 'location' = you go to them
   address?: string; // For 'location' type
+  hoursOfOperation: {
+    [day: string]: { open: string; close: string; closed?: boolean };
+  };
+  availableSlots: { [dateTime: string]: boolean }; // e.g., {"2024-11-25T09:00": true}
 }
 
 export interface Booking {
@@ -102,7 +106,17 @@ export const mockProviders: ProviderProfile[] = [
     ],
     availability: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
     imageUrl: homeCleaningImg,
-    locationType: 'mobile'
+    locationType: 'mobile',
+    hoursOfOperation: {
+      'Monday': { open: '08:00', close: '18:00' },
+      'Tuesday': { open: '08:00', close: '18:00' },
+      'Wednesday': { open: '08:00', close: '18:00' },
+      'Thursday': { open: '08:00', close: '18:00' },
+      'Friday': { open: '08:00', close: '18:00' },
+      'Saturday': { open: '09:00', close: '16:00' },
+      'Sunday': { open: '00:00', close: '00:00', closed: true },
+    },
+    availableSlots: {},
   },
   {
     id: 'p2',
@@ -120,7 +134,17 @@ export const mockProviders: ProviderProfile[] = [
     ],
     availability: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
     imageUrl: plumbingImg,
-    locationType: 'mobile'
+    locationType: 'mobile',
+    hoursOfOperation: {
+      'Monday': { open: '07:00', close: '19:00' },
+      'Tuesday': { open: '07:00', close: '19:00' },
+      'Wednesday': { open: '07:00', close: '19:00' },
+      'Thursday': { open: '07:00', close: '19:00' },
+      'Friday': { open: '07:00', close: '19:00' },
+      'Saturday': { open: '08:00', close: '17:00' },
+      'Sunday': { open: '09:00', close: '15:00' },
+    },
+    availableSlots: {},
   },
   {
     id: 'p3',
@@ -139,7 +163,17 @@ export const mockProviders: ProviderProfile[] = [
     ],
     availability: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
     imageUrl: automotiveImg,
-    locationType: 'location'
+    locationType: 'location',
+    hoursOfOperation: {
+      'Monday': { open: '09:00', close: '17:00' },
+      'Tuesday': { open: '09:00', close: '17:00' },
+      'Wednesday': { open: '09:00', close: '17:00' },
+      'Thursday': { open: '09:00', close: '17:00' },
+      'Friday': { open: '09:00', close: '17:00' },
+      'Saturday': { open: '10:00', close: '16:00' },
+      'Sunday': { open: '00:00', close: '00:00', closed: true },
+    },
+    availableSlots: {},
   }
 ];
 

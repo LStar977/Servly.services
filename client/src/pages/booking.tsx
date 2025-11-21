@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLocation, Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { mockProviders } from "@/lib/data";
@@ -12,8 +12,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { CalendarIcon, Loader2, CheckCircle, Clock, MapPin, CreditCard, Navigation, Apple } from "lucide-react";
+import { format, addHours, addDays } from "date-fns";
+import { CalendarIcon, Loader2, CheckCircle, Clock, MapPin, CreditCard, Navigation, Apple, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Booking() {
@@ -28,11 +28,12 @@ export default function Booking() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState<Date>();
-  const [time, setTime] = useState<string>();
+  const [selectedSlot, setSelectedSlot] = useState<string>("");
   const [selectedService, setSelectedService] = useState<string>("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("card");
+  const [bookedSlots, setBookedSlots] = useState<string[]>(['2024-11-25T09:00', '2024-11-25T14:00']);
 
   if (!provider) {
     return (
@@ -43,38 +44,50 @@ export default function Booking() {
     );
   }
 
+  const generateTimeSlots = (selectedDate: Date) => {
+    const slots: string[] = [];
+    const dayName = format(selectedDate, 'EEEE');
+    const hours = provider.hoursOfOperation[dayName];
+    
+    if (!hours || hours.closed) return slots;
+
+    const [openHour, openMin] = hours.open.split(':').map(Number);
+    const [closeHour, closeMin] = hours.close.split(':').map(Number);
+    
+    let current = new Date(selectedDate);
+    current.setHours(openHour, openMin, 0);
+    
+    const endTime = new Date(selectedDate);
+    endTime.setHours(closeHour, closeMin, 0);
+
+    while (current < endTime) {
+      const slotTime = format(current, "yyyy-MM-dd'T'HH:mm");
+      slots.push(slotTime);
+      current = addHours(current, 1);
+    }
+
+    return slots;
+  };
+
+  const timeSlots = date ? generateTimeSlots(date) : [];
+  
+  const dayName = date ? format(date, 'EEEE') : null;
+  const hours = dayName ? provider.hoursOfOperation[dayName] : null;
+  const isClosed = hours?.closed;
+
   const handlePaymentAndBooking = async () => {
     setIsSubmitting(true);
-    // Simulate Payment Processing and API call
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     toast({
       title: "Payment Successful & Booking Confirmed!",
-      description: `Your appointment with ${provider.businessName} is confirmed for ${date ? format(date, "MMM d") : ''} at ${time}.`,
+      description: `Your appointment with ${provider.businessName} is confirmed for ${date ? format(date, "MMM d") : ''} at ${selectedSlot}.`,
     });
     
+    setBookedSlots(prev => [...prev, selectedSlot]);
     setIsSubmitting(false);
-    setStep(3); // Success step
+    setStep(3);
   };
-
-  // Generate time slots with 15-minute increments
-  const generateTimeSlots = () => {
-    const slots = [];
-    const startHour = 8; // 8 AM
-    const endHour = 19; // 7 PM
-
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (let minute = 0; minute < 60; minute += 15) {
-        const period = hour >= 12 ? 'PM' : 'AM';
-        const displayHour = hour > 12 ? hour - 12 : hour;
-        const displayMinute = minute.toString().padStart(2, '0');
-        slots.push(`${displayHour}:${displayMinute} ${period}`);
-      }
-    }
-    return slots;
-  };
-
-  const timeSlots = generateTimeSlots();
 
   if (step === 3) {
     const isMobileService = provider.locationType === 'mobile';
@@ -86,12 +99,11 @@ export default function Booking() {
          </div>
          <h1 className="text-3xl font-bold mb-2">Booking Confirmed!</h1>
          <p className="text-muted-foreground text-lg mb-8">
-           You're all set for <strong>{date ? format(date, "MMMM do") : ''}</strong> at <strong>{time}</strong>.
+           You're all set for <strong>{date ? format(date, "MMMM do") : ''}</strong> at <strong>{selectedSlot}</strong>.
          </p>
 
          <Card className="w-full overflow-hidden mb-8 shadow-lg border-muted">
             <div className="h-64 bg-slate-100 relative w-full flex items-center justify-center">
-                {/* Simulated Map View */}
                 <div className="absolute inset-0 bg-[url('https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fmedia.wired.com%2Fphotos%2F59269cd37034dc5f91bec0f1%2Fmaster%2Fpass%2FGoogleMapTA.jpg&f=1&nofb=1&ipt=b63d6c782249f792e0020505a0022b8b72589d5736489d498826049898530638&ipo=images')] bg-cover bg-center opacity-80"></div>
                 
                 <div className="absolute inset-0 bg-black/10"></div>
@@ -169,11 +181,10 @@ export default function Booking() {
       </Button>
 
       <div className="grid md:grid-cols-3 gap-8">
-        {/* Main Form */}
         <div className="md:col-span-2 space-y-6">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold">Complete Booking</h1>
-            <p className="text-muted-foreground">Select your service, time, and complete payment.</p>
+            <p className="text-muted-foreground">Select your service, date & time slot, then complete payment.</p>
           </div>
 
           <Card>
@@ -193,58 +204,81 @@ export default function Booking() {
                           <div className="text-sm text-muted-foreground">{service.description}</div>
                         </Label>
                       </div>
-                      <div className="font-bold">
-                        ${service.price}
-                      </div>
+                      <div className="font-bold">${service.price}</div>
                     </div>
                   ))}
                 </RadioGroup>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label>Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !date && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        initialFocus
-                        disabled={(date) => date < new Date()}
-                      />
-                    </PopoverContent>
-                  </Popover>
+              <div className="space-y-4">
+                <Label>Select Date & Time</Label>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label className="text-sm text-muted-foreground">Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !date && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {date ? format(date, "PPP") : <span>Pick a date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={date}
+                          onSelect={setDate}
+                          initialFocus
+                          disabled={(d) => d < new Date()}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label className="text-sm text-muted-foreground">Time Slot</Label>
+                    {date && isClosed ? (
+                      <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                        <AlertCircle className="h-4 w-4" /> Closed on {dayName}
+                      </div>
+                    ) : date && timeSlots.length === 0 ? (
+                      <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+                        <AlertCircle className="h-4 w-4" /> No slots available
+                      </div>
+                    ) : (
+                      <Select value={selectedSlot} onValueChange={setSelectedSlot}>
+                        <SelectTrigger className={cn(!selectedSlot && "text-muted-foreground")}>
+                          <div className="flex items-center">
+                            <Clock className="mr-2 h-4 w-4" />
+                            <SelectValue placeholder="Select time" />
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent className="max-h-60">
+                          {timeSlots.map((slot) => {
+                            const isBooked = bookedSlots.includes(slot);
+                            const slotDisplay = format(new Date(slot), 'h:mm a');
+                            return (
+                              <SelectItem key={slot} value={slot} disabled={isBooked}>
+                                {slotDisplay} {isBooked ? '(Booked)' : ''}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
                 </div>
 
-                <div className="grid gap-2">
-                  <Label>Time</Label>
-                  <Select onValueChange={setTime} value={time}>
-                    <SelectTrigger className={cn(!time && "text-muted-foreground")}>
-                      <div className="flex items-center">
-                        <Clock className="mr-2 h-4 w-4" />
-                        <SelectValue placeholder="Select time" />
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60">
-                      {timeSlots.map((slot) => (
-                        <SelectItem key={slot} value={slot}>{slot}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {date && (
+                  <div className="text-xs text-muted-foreground">
+                    <strong>Hours:</strong> {hours?.closed ? 'Closed' : `${hours?.open} - ${hours?.close}`}
+                  </div>
+                )}
               </div>
 
               <div className="grid gap-2">
@@ -268,7 +302,6 @@ export default function Booking() {
             </CardContent>
           </Card>
 
-          {/* Payment Section - Integrated directly */}
           <Card>
             <CardHeader>
                <CardTitle>2. Payment</CardTitle>
@@ -342,7 +375,7 @@ export default function Booking() {
                    className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-lg" 
                    size="lg" 
                    onClick={handlePaymentAndBooking}
-                   disabled={!selectedService || !date || !time || !address || isSubmitting}
+                   disabled={!selectedService || !date || !selectedSlot || !address || isSubmitting}
                  >
                    {isSubmitting ? (
                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing Payment...</>
@@ -355,7 +388,6 @@ export default function Booking() {
           </Card>
         </div>
 
-        {/* Provider Summary Sidebar */}
         <div>
           <Card className="sticky top-24">
             <CardHeader>
@@ -363,7 +395,7 @@ export default function Booking() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary text-lg font-bold overflow-hidden">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden">
                   {provider.imageUrl ? (
                     <img src={provider.imageUrl} alt={provider.businessName} className="h-full w-full object-cover" />
                   ) : (
@@ -389,10 +421,10 @@ export default function Booking() {
                     <span className="font-medium">{format(date, "MMM d, yyyy")}</span>
                   </div>
                 )}
-                {time && (
+                {selectedSlot && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Time</span>
-                    <span className="font-medium">{time}</span>
+                    <span className="font-medium">{format(new Date(selectedSlot), 'h:mm a')}</span>
                   </div>
                 )}
               </div>
