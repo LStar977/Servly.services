@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,9 +7,11 @@ import { categories, mockProviders } from "@/lib/data";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Card, CardContent } from "@/components/ui/card";
+import AIAssistChat from "@/components/ai-assist-chat";
 
 export default function Home() {
   const [, setLocation] = useLocation();
+  const [showAssistChat, setShowAssistChat] = useState(false);
 
   const getIcon = (iconName: string) => {
     switch (iconName) {
@@ -31,6 +34,8 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      {/* AI Assist Chat Modal */}
+      <AIAssistChat open={showAssistChat} onOpenChange={setShowAssistChat} />
       {/* Hero Section */}
       <section className="relative pt-16 pb-12 lg:pt-24 lg:pb-20 overflow-hidden bg-background">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/20 via-background to-background dark:from-indigo-500/10 dark:via-background dark:to-background -z-10"></div>
@@ -215,7 +220,7 @@ export default function Home() {
                   <p className="text-xl text-slate-300 mb-8 leading-relaxed">
                      Ask anything and we'll book it for you. "Find me a car detailing at 3 PM today." Servly Assist handles the search, booking, and payment.
                   </p>
-                  <Button size="lg" className="bg-white text-slate-900 hover:bg-white/90">Try Servly Assist</Button>
+                  <Button size="lg" className="bg-white text-slate-900 hover:bg-white/90" onClick={() => setShowAssistChat(true)}>Try Servly Assist</Button>
                </div>
                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 max-w-md mx-auto">
                   <div className="space-y-4">
