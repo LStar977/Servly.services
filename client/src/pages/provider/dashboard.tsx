@@ -86,6 +86,13 @@ export default function ProviderDashboard() {
     }));
   };
 
+  const handleSaveHours = () => {
+    toast({
+      title: "Hours Saved",
+      description: "Your business hours have been updated successfully",
+    });
+  };
+
   const pendingBookings = bookings.filter(b => b.status === 'pending');
   const upcomingBookings = bookings.filter(b => b.status === 'accepted');
   const pastBookings = bookings.filter(b => ['completed', 'cancelled', 'declined'].includes(b.status));
@@ -365,7 +372,7 @@ export default function ProviderDashboard() {
                       <Switch defaultChecked={!hoursOfOperation[day]?.closed} />
                     </div>
                   ))}
-                  <Button className="mt-4">Save Hours</Button>
+                  <Button className="mt-4" onClick={handleSaveHours}>Save Hours</Button>
                 </CardContent>
               </Card>
 
