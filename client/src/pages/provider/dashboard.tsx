@@ -28,6 +28,13 @@ export default function ProviderDashboard() {
   const [services, setServices] = useState(provider?.services || []);
   const [hoursOfOperation, setHoursOfOperation] = useState(provider?.hoursOfOperation || {});
   
+  const [businessDetails, setBusinessDetails] = useState({
+    businessName: provider?.businessName || '',
+    description: provider?.description || '',
+    phone: provider?.phone || '',
+    city: provider?.city || '',
+  });
+  
   const [showAddService, setShowAddService] = useState(false);
   const [newService, setNewService] = useState({ title: '', description: '', price: '', priceUnit: 'visit' });
 
@@ -90,6 +97,13 @@ export default function ProviderDashboard() {
     toast({
       title: "Hours Saved",
       description: "Your business hours have been updated successfully",
+    });
+  };
+
+  const handleSaveChanges = () => {
+    toast({
+      title: "Changes Saved",
+      description: "Your business details have been updated successfully",
     });
   };
 
@@ -325,23 +339,36 @@ export default function ProviderDashboard() {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label>Business Name</Label>
-                    <Input defaultValue={provider?.businessName} />
+                    <Input 
+                      value={businessDetails.businessName}
+                      onChange={(e) => setBusinessDetails({...businessDetails, businessName: e.target.value})}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Description</Label>
-                    <Textarea defaultValue={provider?.description} rows={4} />
+                    <Textarea 
+                      value={businessDetails.description}
+                      onChange={(e) => setBusinessDetails({...businessDetails, description: e.target.value})}
+                      rows={4} 
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Phone</Label>
-                      <Input defaultValue={provider?.phone} />
+                      <Input 
+                        value={businessDetails.phone}
+                        onChange={(e) => setBusinessDetails({...businessDetails, phone: e.target.value})}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>City</Label>
-                      <Input defaultValue={provider?.city} />
+                      <Input 
+                        value={businessDetails.city}
+                        onChange={(e) => setBusinessDetails({...businessDetails, city: e.target.value})}
+                      />
                     </div>
                   </div>
-                  <Button>Save Changes</Button>
+                  <Button onClick={handleSaveChanges}>Save Changes</Button>
                 </CardContent>
               </Card>
 
