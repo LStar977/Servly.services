@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { Mail, Phone, MapPin, Save, Camera, Smartphone, Shield, Trash2, LogOut, Check } from "lucide-react";
+import { Mail, Phone, MapPin, Save, Camera, Smartphone, Shield, Trash2, LogOut, Check, Copy, Eye, EyeOff } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 
 const PRESET_AVATARS = [
   "https://api.dicebear.com/7.x/avataaars/svg?seed=1",
@@ -21,6 +22,22 @@ const PRESET_AVATARS = [
   "https://api.dicebear.com/7.x/avataaars/svg?seed=5",
   "https://api.dicebear.com/7.x/avataaars/svg?seed=6",
 ];
+
+// Generate random base32 secret for TOTP
+const generateTOTPSecret = (): string => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let secret = '';
+  for (let i = 0; i < 32; i++) {
+    secret += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return secret;
+};
+
+// Generate otpauth URL for QR code
+const generateOTPAuthURL = (email: string, secret: string): string => {
+  const encodedEmail = encodeURIComponent(`Servly (${email})`);
+  return `otpauth://totp/${encodedEmail}?secret=${secret}&issuer=Servly`;
+};
 
 export default function Profile() {
   const { user, logout } = useAuth();
@@ -45,9 +62,14 @@ export default function Profile() {
 
   const [showAvatarDialog, setShowAvatarDialog] = useState(false);
   const [show2FADialog, setShow2FADialog] = useState(false);
+  const [show2FASetup, setShow2FASetup] = useState(false);
   const [showSessionsDialog, setShowSessionsDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [twoFAEnabled, setTwoFAEnabled] = useState(false);
+  const [twoFASecret, setTwoFASecret] = useState('');
+  const [twoFAQR, setTwoFAQR] = useState('');
+  const [twoFAVerificationCode, setTwoFAVerificationCode] = useState('');
+  const [showManualCode, setShowManualCode] = useState(false);
 
   const handleSaveProfile = () => {
     if (!formData.name || !formData.email) {
@@ -117,12 +139,55 @@ export default function Profile() {
     });
   };
 
-  const handleEnable2FA = () => {
-    setTwoFAEnabled(!twoFAEnabled);
+  const handleStartEnable2FA = () => {
+    // Generate a TOTP secret
+    const secret = generateTOTPSecret();
+    const qrUrl = generateOTPAuthURL(formData.email, secret);
+
+    setTwoFASecret(secret);
+    setTwoFAQR(qrUrl);
+    setShow2FASetup(true);
+    setTwoFAVerificationCode('');
+  };
+
+  const handleVerifyTwoFA = () => {
+    if (!twoFAVerificationCode || twoFAVerificationCode.length !== 6) {
+      toast({
+        title: "Invalid Code",
+        description: "Please enter a valid 6-digit code from your authenticator app",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // In a real app, this would validate the TOTP code
+    // For now, we'll just accept any 6-digit code
+    setTwoFAEnabled(true);
+    setShow2FASetup(false);
+    setShow2FADialog(false);
+    setTwoFAVerificationCode('');
+    setTwoFASecret('');
+    toast({
+      title: "2FA Enabled",
+      description: "Two-factor authentication has been successfully enabled on your account",
+    });
+  };
+
+  const handleDisable2FA = () => {
+    setTwoFAEnabled(false);
     setShow2FADialog(false);
     toast({
-      title: twoFAEnabled ? "2FA Disabled" : "2FA Enabled",
-      description: twoFAEnabled ? "Two-factor authentication has been disabled" : "Two-factor authentication has been enabled successfully",
+      title: "2FA Disabled",
+      description: "Two-factor authentication has been disabled",
+      variant: "destructive",
+    });
+  };
+
+  const handleCopySecret = () => {
+    navigator.clipboard.writeText(twoFASecret);
+    toast({
+      title: "Copied",
+      description: "Secret code copied to clipboard",
     });
   };
 
@@ -378,15 +443,15 @@ export default function Profile() {
                     </div>
                   </div>
                   <Button 
-                    variant="outline" 
+                    variant={twoFAEnabled ? "outline" : "default"}
                     className="w-full"
                     onClick={() => setShow2FADialog(true)}
                   >
-                    <Smartphone className="w-4 h-4 mr-2" /> {twoFAEnabled ? 'Manage 2FA' : 'Enable 2FA'}
+                    <Smartphone className="w-4 h-4 mr-2" /> {twoFAEnabled ? 'Manage 2FA' : 'Set Up 2FA'}
                   </Button>
                 </div>
 
-                {/* 2FA Dialog */}
+                {/* 2FA Status Dialog */}
                 <Dialog open={show2FADialog} onOpenChange={setShow2FADialog}>
                   <DialogContent className="sm:max-w-md">
                     <DialogHeader>
@@ -401,7 +466,7 @@ export default function Profile() {
                         <p className="text-sm text-blue-900">
                           {twoFAEnabled 
                             ? 'Two-factor authentication is currently enabled on your account.'
-                            : 'Two-factor authentication adds an extra security step when logging in.'}
+                            : 'Two-factor authentication adds an extra security step when logging in using apps like Google Authenticator or Microsoft Authenticator.'}
                         </p>
                       </div>
                       
@@ -409,7 +474,7 @@ export default function Profile() {
                         <Button 
                           variant="destructive" 
                           className="w-full"
-                          onClick={handleEnable2FA}
+                          onClick={handleDisable2FA}
                         >
                           Disable 2FA
                         </Button>
@@ -418,15 +483,124 @@ export default function Profile() {
                       {!twoFAEnabled && (
                         <Button 
                           className="w-full"
-                          onClick={handleEnable2FA}
+                          onClick={handleStartEnable2FA}
                         >
-                          Enable 2FA
+                          <Smartphone className="w-4 h-4 mr-2" /> Enable 2FA
                         </Button>
                       )}
                     </div>
 
                     <DialogFooter>
                       <Button variant="outline" onClick={() => setShow2FADialog(false)}>Close</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                {/* 2FA Setup Dialog */}
+                <Dialog open={show2FASetup} onOpenChange={setShow2FASetup}>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Set Up Two-Factor Authentication</DialogTitle>
+                      <DialogDescription>
+                        Scan the QR code with your authenticator app
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-6">
+                      {/* Step 1: Download Apps */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-sm">Step 1: Download an Authenticator App</h4>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" className="flex-1 text-xs">
+                            <img src="https://www.gstatic.com/images/branding/product/1x/googleg_40dp.png" alt="Google" className="w-4 h-4 mr-1" />
+                            Google Auth
+                          </Button>
+                          <Button variant="outline" size="sm" className="flex-1 text-xs">
+                            <span className="font-bold mr-1">Ⓜ️</span>
+                            Microsoft Auth
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Step 2: Scan QR Code */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-sm">Step 2: Scan this QR Code</h4>
+                        <div className="flex justify-center p-4 bg-gray-100 rounded-lg">
+                          {twoFAQR && (
+                            <QRCodeSVG 
+                              value={twoFAQR} 
+                              size={200}
+                              level="H"
+                              includeMargin={true}
+                            />
+                          )}
+                        </div>
+                        <button
+                          onClick={() => setShowManualCode(!showManualCode)}
+                          className="w-full text-sm text-primary hover:underline flex items-center justify-center gap-1"
+                        >
+                          {showManualCode ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                          {showManualCode ? 'Hide' : 'Or enter code manually'}
+                        </button>
+                      </div>
+
+                      {/* Manual Code Entry */}
+                      {showManualCode && (
+                        <div className="space-y-3 p-3 bg-gray-50 rounded-lg border">
+                          <p className="text-xs text-muted-foreground">
+                            If you can't scan the QR code, enter this code manually in your authenticator app:
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <code className="flex-1 p-2 bg-white border rounded text-sm font-mono text-center tracking-widest">
+                              {twoFASecret}
+                            </code>
+                            <button
+                              onClick={handleCopySecret}
+                              className="p-2 hover:bg-white border rounded transition-colors"
+                              title="Copy"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Step 3: Verify */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-sm">Step 3: Verify the Code</h4>
+                        <p className="text-xs text-muted-foreground">
+                          Enter the 6-digit code from your authenticator app
+                        </p>
+                        <Input
+                          placeholder="000000"
+                          value={twoFAVerificationCode}
+                          onChange={(e) => setTwoFAVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          maxLength={6}
+                          className="text-center text-2xl tracking-widest font-mono"
+                        />
+                      </div>
+
+                      {/* Warning */}
+                      <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                        <p className="text-xs text-amber-900">
+                          <span className="font-semibold">Save your recovery codes:</span> If you lose access to your authenticator app, you'll need these codes to regain access.
+                        </p>
+                      </div>
+                    </div>
+
+                    <DialogFooter className="flex-col gap-2 sm:flex-row">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setShow2FASetup(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={handleVerifyTwoFA}
+                        disabled={twoFAVerificationCode.length !== 6}
+                      >
+                        Verify & Enable 2FA
+                      </Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
