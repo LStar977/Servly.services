@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Loader2 } from "lucide-react";
+import { Loader2, Apple } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -21,6 +22,7 @@ const formSchema = z.object({
 
 export default function Signup() {
   const { signup, isLoading } = useAuth();
+  const { toast } = useToast();
   const [, setLocation] = useLocation();
   
   // check for query param ?role=provider
@@ -45,6 +47,22 @@ export default function Signup() {
       setLocation('/provider/dashboard');
     }
   }
+
+  const handleSocialSignup = (provider: string) => {
+    toast({
+      title: `Connecting to ${provider}`,
+      description: "This is a simulation. In a real app, this would redirect to the provider.",
+    });
+    // Simulate successful login after a short delay
+    setTimeout(() => {
+      signup({
+        name: `Demo ${provider} User`,
+        email: `demo-${provider.toLowerCase()}@example.com`,
+        role: 'customer'
+      });
+      setLocation("/customer/dashboard");
+    }, 1500);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4 py-8">
@@ -162,8 +180,28 @@ export default function Signup() {
             </form>
           </Form>
         </CardContent>
-        <CardFooter>
-          <p className="text-center text-sm text-muted-foreground w-full">
+        <CardFooter className="flex flex-col gap-4">
+          <div className="relative w-full">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or sign up with
+              </span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4 w-full">
+            <Button variant="outline" disabled={isLoading} onClick={() => handleSocialSignup('Google')}>
+              <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path></svg>
+              Google
+            </Button>
+            <Button variant="outline" disabled={isLoading} onClick={() => handleSocialSignup('Apple')}>
+              <Apple className="mr-2 h-4 w-4" />
+              Apple
+            </Button>
+          </div>
+          <p className="text-center text-sm text-muted-foreground mt-2">
             Already have an account?{" "}
             <Link href="/auth/login">
               <span className="font-semibold text-primary hover:underline cursor-pointer">Log in</span>
