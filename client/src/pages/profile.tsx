@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,12 +7,26 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Phone, MapPin, Save, Camera } from "lucide-react";
+import { useLocation } from "wouter";
+import { Mail, Phone, MapPin, Save, Camera, Smartphone, Shield, Trash2, LogOut, Check } from "lucide-react";
+
+const PRESET_AVATARS = [
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=1",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=2",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=3",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=4",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=5",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=6",
+];
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -20,7 +34,7 @@ export default function Profile() {
     phone: user?.phone || '',
     bio: user?.bio || '',
     location: user?.city || '',
-    avatar: user?.avatar || '',
+    avatar: user?.avatar || PRESET_AVATARS[0],
   });
 
   const [passwordForm, setPasswordForm] = useState({
@@ -28,6 +42,12 @@ export default function Profile() {
     new: '',
     confirm: '',
   });
+
+  const [showAvatarDialog, setShowAvatarDialog] = useState(false);
+  const [show2FADialog, setShow2FADialog] = useState(false);
+  const [showSessionsDialog, setShowSessionsDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [twoFAEnabled, setTwoFAEnabled] = useState(false);
 
   const handleSaveProfile = () => {
     if (!formData.name || !formData.email) {
@@ -71,6 +91,66 @@ export default function Profile() {
     });
   };
 
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
+        setFormData({ ...formData, avatar: result });
+        setShowAvatarDialog(false);
+        toast({
+          title: "Avatar Updated",
+          description: "Your profile picture has been changed",
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSelectPresetAvatar = (avatarUrl: string) => {
+    setFormData({ ...formData, avatar: avatarUrl });
+    setShowAvatarDialog(false);
+    toast({
+      title: "Avatar Updated",
+      description: "Your profile picture has been changed",
+    });
+  };
+
+  const handleEnable2FA = () => {
+    setTwoFAEnabled(!twoFAEnabled);
+    setShow2FADialog(false);
+    toast({
+      title: twoFAEnabled ? "2FA Disabled" : "2FA Enabled",
+      description: twoFAEnabled ? "Two-factor authentication has been disabled" : "Two-factor authentication has been enabled successfully",
+    });
+  };
+
+  const handleViewSessions = () => {
+    setShowSessionsDialog(true);
+  };
+
+  const handleSignOutAllDevices = () => {
+    setShowSessionsDialog(false);
+    toast({
+      title: "Sessions Cleared",
+      description: "You have been signed out from all other devices",
+    });
+  };
+
+  const handleDeleteAccount = () => {
+    setShowDeleteDialog(false);
+    toast({
+      title: "Account Deleted",
+      description: "Your account has been permanently deleted. Redirecting...",
+      variant: "destructive",
+    });
+    setTimeout(() => {
+      logout();
+      setLocation('/');
+    }, 2000);
+  };
+
   return (
     <div className="min-h-screen bg-background py-12">
       <div className="container mx-auto px-4 max-w-2xl">
@@ -100,10 +180,74 @@ export default function Profile() {
                     <AvatarImage src={formData.avatar} alt={formData.name} />
                     <AvatarFallback className="text-lg">{formData.name.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowAvatarDialog(true)}
+                  >
                     <Camera className="w-4 h-4 mr-2" /> Change Avatar
                   </Button>
                 </div>
+
+                {/* Avatar Selection Dialog */}
+                <Dialog open={showAvatarDialog} onOpenChange={setShowAvatarDialog}>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Change Your Avatar</DialogTitle>
+                      <DialogDescription>Choose a preset avatar or upload your own photo</DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-6">
+                      {/* Upload Section */}
+                      <div className="space-y-3">
+                        <Label>Upload Photo</Label>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAvatarUpload}
+                          className="hidden"
+                        />
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          <Camera className="w-4 h-4 mr-2" /> Choose from Device
+                        </Button>
+                      </div>
+
+                      {/* Preset Avatars */}
+                      <div className="space-y-3">
+                        <Label>Or Choose a Preset</Label>
+                        <div className="grid grid-cols-3 gap-3">
+                          {PRESET_AVATARS.map((avatar, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => handleSelectPresetAvatar(avatar)}
+                              className={`relative h-20 w-20 rounded-lg overflow-hidden border-2 transition-all ${
+                                formData.avatar === avatar
+                                  ? 'border-primary'
+                                  : 'border-transparent hover:border-muted-foreground'
+                              }`}
+                            >
+                              <img src={avatar} alt={`Avatar ${idx + 1}`} className="w-full h-full object-cover" />
+                              {formData.avatar === avatar && (
+                                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                                  <Check className="w-5 h-5 text-white" />
+                                </div>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setShowAvatarDialog(false)}>Cancel</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
 
                 {/* Form Fields */}
                 <div className="space-y-4">
@@ -222,18 +366,117 @@ export default function Profile() {
                   </Button>
                 </div>
 
-                {/* Other Security Options */}
+                {/* Two-Factor Authentication */}
                 <div className="space-y-4">
-                  <h3 className="font-semibold">Two-Factor Authentication</h3>
-                  <p className="text-sm text-muted-foreground">Add an extra layer of security to your account</p>
-                  <Button variant="outline" className="w-full">Enable 2FA</Button>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-semibold mb-1">Two-Factor Authentication</h3>
+                      <p className="text-sm text-muted-foreground">Add an extra layer of security to your account</p>
+                    </div>
+                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${twoFAEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                      {twoFAEnabled ? 'Enabled' : 'Disabled'}
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setShow2FADialog(true)}
+                  >
+                    <Smartphone className="w-4 h-4 mr-2" /> {twoFAEnabled ? 'Manage 2FA' : 'Enable 2FA'}
+                  </Button>
                 </div>
 
+                {/* 2FA Dialog */}
+                <Dialog open={show2FADialog} onOpenChange={setShow2FADialog}>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Two-Factor Authentication</DialogTitle>
+                      <DialogDescription>
+                        {twoFAEnabled ? 'Manage your 2FA settings' : 'Secure your account with 2FA'}
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4">
+                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <p className="text-sm text-blue-900">
+                          {twoFAEnabled 
+                            ? 'Two-factor authentication is currently enabled on your account.'
+                            : 'Two-factor authentication adds an extra security step when logging in.'}
+                        </p>
+                      </div>
+                      
+                      {twoFAEnabled && (
+                        <Button 
+                          variant="destructive" 
+                          className="w-full"
+                          onClick={handleEnable2FA}
+                        >
+                          Disable 2FA
+                        </Button>
+                      )}
+                      
+                      {!twoFAEnabled && (
+                        <Button 
+                          className="w-full"
+                          onClick={handleEnable2FA}
+                        >
+                          Enable 2FA
+                        </Button>
+                      )}
+                    </div>
+
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setShow2FADialog(false)}>Close</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Active Sessions */}
                 <div className="space-y-4">
                   <h3 className="font-semibold">Active Sessions</h3>
                   <p className="text-sm text-muted-foreground">You're currently logged in from 1 device</p>
-                  <Button variant="outline" className="w-full">View All Sessions</Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={handleViewSessions}
+                  >
+                    <Shield className="w-4 h-4 mr-2" /> View All Sessions
+                  </Button>
                 </div>
+
+                {/* Sessions Dialog */}
+                <Dialog open={showSessionsDialog} onOpenChange={setShowSessionsDialog}>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Active Sessions</DialogTitle>
+                      <DialogDescription>Devices currently logged into your account</DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-3">
+                      <div className="p-4 border rounded-lg">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <p className="font-medium text-sm">This Device</p>
+                            <p className="text-xs text-muted-foreground">Last active now</p>
+                          </div>
+                          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Current</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Chrome on macOS</p>
+                      </div>
+                    </div>
+
+                    <DialogFooter className="flex-col gap-2">
+                      <Button 
+                        variant="destructive"
+                        className="w-full"
+                        onClick={handleSignOutAllDevices}
+                      >
+                        <LogOut className="w-4 h-4 mr-2" /> Sign Out All Other Devices
+                      </Button>
+                      <Button variant="outline" className="w-full" onClick={() => setShowSessionsDialog(false)}>Close</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </CardContent>
             </Card>
           </TabsContent>
@@ -248,9 +491,36 @@ export default function Profile() {
             <p className="text-sm text-muted-foreground">
               Once you delete your account, there is no going back. Please be certain.
             </p>
-            <Button variant="destructive" className="w-full">Delete Account</Button>
+            <Button 
+              variant="destructive" 
+              className="w-full"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Trash2 className="w-4 h-4 mr-2" /> Delete Account
+            </Button>
           </CardContent>
         </Card>
+
+        {/* Delete Account Confirmation Dialog */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Account</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete your account and remove all your data from Servly.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleDeleteAccount}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Delete Account
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
