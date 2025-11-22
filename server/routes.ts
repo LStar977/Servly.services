@@ -208,6 +208,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Health check endpoint
+  app.get("/api/health", async (req, res) => {
+    res.json({ status: "ok", message: "Servly API is running" });
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

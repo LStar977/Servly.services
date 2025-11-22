@@ -126,6 +126,7 @@ export default function Booking() {
 
     setIsSubmitting(true);
     try {
+      // First create the booking
       const booking = await bookingAPI.create({
         customerId: user.id,
         providerId: provider.id,
@@ -137,8 +138,10 @@ export default function Booking() {
         status: 'pending',
       });
 
+      // For now, skip actual Stripe payment and show confirmation
+      // In production, you would initiate Stripe checkout here
       toast({
-        title: "Payment Successful & Booking Confirmed!",
+        title: "Booking Confirmed!",
         description: `Your appointment with ${provider.businessName} is confirmed for ${date ? format(date, "MMM d") : ''} at ${selectedSlot}.`,
       });
       
