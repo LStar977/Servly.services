@@ -17,6 +17,7 @@ import Booking from "@/pages/booking";
 import Profile from "@/pages/profile";
 import CustomerDashboard from "@/pages/customer/dashboard";
 import ProviderDashboard from "@/pages/provider/dashboard";
+import ProviderServices from "@/pages/provider/services";
 import AdminDashboard from "@/pages/admin/dashboard";
 import HowItWorks from "@/pages/how-it-works";
 import ForBusiness from "@/pages/for-business";
@@ -49,6 +50,7 @@ function Router() {
         {/* Dashboards */}
         <Route path="/customer/dashboard" component={CustomerDashboard} />
         <Route path="/provider/dashboard" component={ProviderDashboard} />
+        <Route path="/provider/services" component={ProviderServices} />
         <Route path="/admin/dashboard" component={AdminDashboard} />
         
         <Route component={NotFound} />

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "wouter";
 import { mockProviders, categories } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
 import { providerAPI, bookingAPI, serviceAPI } from "@/lib/api";
