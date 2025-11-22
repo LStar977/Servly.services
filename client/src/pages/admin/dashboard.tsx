@@ -1,10 +1,11 @@
+import { Link } from "wouter";
 import { mockUsers, mockProviders, mockBookings } from "@/lib/data";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Briefcase, CalendarCheck, ShieldAlert } from "lucide-react";
+import { Users, Briefcase, CalendarCheck, ShieldAlert, Settings } from "lucide-react";
 
 export default function AdminDashboard() {
   return (
@@ -14,6 +15,12 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
           <p className="text-muted-foreground">System overview and management</p>
         </div>
+        <Link href="/admin/settings">
+          <Button className="gap-2">
+            <Settings className="h-4 w-4" />
+            Settings
+          </Button>
+        </Link>
       </div>
 
       {/* Stats Cards */}

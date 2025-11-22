@@ -266,6 +266,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin Settings Routes
+  app.get("/api/admin/settings", async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.user || (req.user as any).role !== 'admin') {
+        res.status(403).json({ message: "Unauthorized: Admin access required" });
+        return;
+      }
+      const settings = await storage.getPlatformSettings();
+      res.json({ settings });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/admin/settings", async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.user || (req.user as any).role !== 'admin') {
+        res.status(403).json({ message: "Unauthorized: Admin access required" });
+        return;
+      }
+      const { feePercentage, basicMonthlyPrice, proMonthlyPrice, premiumMonthlyPrice } = req.body;
+      const settings = await storage.updatePlatformSettings({
+        feePercentage,
+        basicMonthlyPrice,
+        proMonthlyPrice,
+        premiumMonthlyPrice,
+      });
+      res.json({ settings });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   // Health check endpoint
   app.get("/api/health", async (req, res) => {
     res.json({ status: "ok", message: "Servly API is running" });

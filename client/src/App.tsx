@@ -18,6 +18,7 @@ import Profile from "@/pages/profile";
 import CustomerDashboard from "@/pages/customer/dashboard";
 import ProviderDashboard from "@/pages/provider/dashboard";
 import AdminDashboard from "@/pages/admin/dashboard";
+import AdminSettings from "@/pages/admin/settings";
 import HowItWorks from "@/pages/how-it-works";
 import ForBusiness from "@/pages/for-business";
 import About from "@/pages/about";
@@ -50,6 +51,7 @@ function Router() {
         <Route path="/customer/dashboard" component={CustomerDashboard} />
         <Route path="/provider/dashboard" component={ProviderDashboard} />
         <Route path="/admin/dashboard" component={AdminDashboard} />
+        <Route path="/admin/settings" component={AdminSettings} />
         
         <Route component={NotFound} />
       </Switch>
