@@ -74,6 +74,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get current authenticated user from session
+  app.get("/api/auth/me", async (req, res) => {
+    try {
+      // Check if user is authenticated via OAuth session
+      if (req.user && (req.user as any).claims) {
+        const oauthUser = req.user as any;
+        const dbUser = await storage.getUserByEmail(oauthUser.claims.email);
+        if (dbUser) {
+          return res.json({ user: { ...dbUser, password: undefined } });
+        }
+      }
+      // Check if user is authenticated via email/password (check session cookie)
+      if (req.user) {
+        return res.json({ user: req.user });
+      }
+      res.status(401).json({ message: "Not authenticated" });
+    } catch (error: any) {
+      console.error("Get current user error:", error);
+      res.status(400).json({ message: error.message || "Failed to fetch user" });
+    }
+  });
+
   app.get("/api/users/:id", async (req, res) => {
     try {
       const user = await storage.getUser(req.params.id);
