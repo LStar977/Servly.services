@@ -53,6 +53,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/users/:id", async (req, res) => {
+    try {
+      const user = await storage.updateUser(req.params.id, req.body);
+      if (!user) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+      res.json({ user: { ...user, password: undefined } });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   // Categories Routes
   app.get("/api/categories", async (req, res) => {
     try {

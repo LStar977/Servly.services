@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { useAuth } from "@/lib/auth";
+import { authAPI } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,7 +72,7 @@ export default function Profile() {
   const [twoFAVerificationCode, setTwoFAVerificationCode] = useState('');
   const [showManualCode, setShowManualCode] = useState(false);
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (!formData.name || !formData.email) {
       toast({
         title: "Error",
@@ -81,10 +82,25 @@ export default function Profile() {
       return;
     }
 
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been saved successfully",
-    });
+    if (!user) return;
+
+    try {
+      await authAPI.updateUser(user.id, {
+        name: formData.name,
+        email: formData.email,
+        avatar: formData.avatar,
+      });
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been saved successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to update profile",
+        description: error instanceof Error ? error.message : "Could not save changes",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleChangePassword = () => {

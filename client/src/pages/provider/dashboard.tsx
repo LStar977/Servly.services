@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { mockBookings, mockProviders, categories, Booking } from "@/lib/data";
+import { useState, useEffect } from "react";
+import { mockProviders, categories } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
+import { providerAPI, bookingAPI, serviceAPI } from "@/lib/api";
+import type { Booking } from "@/lib/data";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,11 +23,27 @@ export default function ProviderDashboard() {
   const providerId = 'p1';
   const provider = mockProviders.find(p => p.id === providerId);
   
-  const [bookings, setBookings] = useState(
-    mockBookings.filter(b => b.providerId === providerId)
-  );
-
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [services, setServices] = useState(provider?.services || []);
+  const [isLoadingBookings, setIsLoadingBookings] = useState(true);
+
+  useEffect(() => {
+    const loadBookings = async () => {
+      try {
+        const data = await providerAPI.getBookings(providerId);
+        setBookings(data);
+      } catch (error) {
+        console.error("Failed to load bookings:", error);
+        toast({
+          title: "Failed to load bookings",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingBookings(false);
+      }
+    };
+    loadBookings();
+  }, [providerId, toast]);
   const [hoursOfOperation, setHoursOfOperation] = useState(provider?.hoursOfOperation || {});
   
   const [businessDetails, setBusinessDetails] = useState({
@@ -38,18 +56,27 @@ export default function ProviderDashboard() {
   const [showAddService, setShowAddService] = useState(false);
   const [newService, setNewService] = useState({ title: '', description: '', price: '', priceUnit: 'visit' });
 
-  const handleStatusChange = (bookingId: string, newStatus: Booking['status']) => {
-    setBookings(prev => prev.map(b => 
-      b.id === bookingId ? { ...b, status: newStatus } : b
-    ));
-    
-    toast({
-      title: "Status Updated",
-      description: `Booking marked as ${newStatus}`,
-    });
+  const handleStatusChange = async (bookingId: string, newStatus: Booking['status']) => {
+    try {
+      await bookingAPI.updateStatus(bookingId, newStatus);
+      setBookings(prev => prev.map(b => 
+        b.id === bookingId ? { ...b, status: newStatus } : b
+      ));
+      
+      toast({
+        title: "Status Updated",
+        description: `Booking marked as ${newStatus}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to update status",
+        description: error instanceof Error ? error.message : "Could not update booking",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleAddService = () => {
+  const handleAddService = async () => {
     if (!newService.title || !newService.price) {
       toast({
         title: "Error",
@@ -59,31 +86,48 @@ export default function ProviderDashboard() {
       return;
     }
 
-    const service = {
-      id: `s${Date.now()}`,
-      title: newService.title,
-      description: newService.description,
-      price: parseFloat(newService.price),
-      priceUnit: newService.priceUnit as 'hour' | 'job' | 'visit',
-      categoryId: 'cat_1',
-    };
+    try {
+      const service = await serviceAPI.create({
+        providerId,
+        title: newService.title,
+        description: newService.description,
+        price: parseFloat(newService.price),
+        priceUnit: newService.priceUnit as 'hour' | 'job' | 'visit',
+        categoryId: 'cat_1',
+      });
 
-    setServices([...services, service]);
-    setNewService({ title: '', description: '', price: '', priceUnit: 'visit' });
-    setShowAddService(false);
-    
-    toast({
-      title: "Service Added",
-      description: `${service.title} has been added`,
-    });
+      setServices([...services, service]);
+      setNewService({ title: '', description: '', price: '', priceUnit: 'visit' });
+      setShowAddService(false);
+      
+      toast({
+        title: "Service Added",
+        description: `${service.title} has been added`,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to add service",
+        description: error instanceof Error ? error.message : "Could not create service",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteService = (serviceId: string) => {
-    setServices(services.filter(s => s.id !== serviceId));
-    toast({
-      title: "Service Removed",
-      description: "Service has been deleted",
-    });
+  const handleDeleteService = async (serviceId: string) => {
+    try {
+      await serviceAPI.delete(serviceId);
+      setServices(services.filter(s => s.id !== serviceId));
+      toast({
+        title: "Service Removed",
+        description: "Service has been deleted",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to delete service",
+        description: error instanceof Error ? error.message : "Could not delete service",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleHoursChange = (day: string, field: 'open' | 'close', value: string) => {
@@ -100,11 +144,27 @@ export default function ProviderDashboard() {
     });
   };
 
-  const handleSaveChanges = () => {
-    toast({
-      title: "Changes Saved",
-      description: "Your business details have been updated successfully",
-    });
+  const handleSaveChanges = async () => {
+    try {
+      if (!provider) return;
+      await providerAPI.update(provider.id, {
+        businessName: businessDetails.businessName,
+        description: businessDetails.description,
+        phone: businessDetails.phone,
+        city: businessDetails.city,
+        hoursOfOperation,
+      });
+      toast({
+        title: "Changes Saved",
+        description: "Your business details have been updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to save changes",
+        description: error instanceof Error ? error.message : "Could not update profile",
+        variant: "destructive",
+      });
+    }
   };
 
   const pendingBookings = bookings.filter(b => b.status === 'pending');

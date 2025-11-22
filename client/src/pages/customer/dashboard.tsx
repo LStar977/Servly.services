@@ -155,8 +155,17 @@ export default function CustomerDashboard() {
     );
   };
 
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <p>Please log in to view your bookings</p>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
+      {isLoading && <p className="text-muted-foreground mb-4">Loading bookings...</p>}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold mb-2">My Requests</h1>

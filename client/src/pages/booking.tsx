@@ -1,7 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLocation, Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { mockProviders } from "@/lib/data";
+import { providerAPI, bookingAPI } from "@/lib/api";
+import type { ProviderProfile } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -23,7 +25,27 @@ export default function Booking() {
   const urlParams = new URLSearchParams(window.location.search);
   const providerId = urlParams.get('providerId');
   
-  const provider = mockProviders.find(p => p.id === providerId);
+  const [provider, setProvider] = useState<ProviderProfile | null>(null);
+  const [providerLoading, setProviderLoading] = useState(true);
+
+  useEffect(() => {
+    if (!providerId) return;
+    const loadProvider = async () => {
+      try {
+        const data = await providerAPI.getById(providerId);
+        setProvider(data);
+      } catch (error) {
+        console.error("Failed to load provider:", error);
+        toast({
+          title: "Provider not found",
+          variant: "destructive",
+        });
+      } finally {
+        setProviderLoading(false);
+      }
+    };
+    loadProvider();
+  }, [providerId, toast]);
   
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,6 +56,14 @@ export default function Booking() {
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [bookedSlots, setBookedSlots] = useState<string[]>(['2024-11-25T09:00', '2024-11-25T14:00']);
+
+  if (providerLoading) {
+    return (
+      <div className="container mx-auto py-12 text-center">
+        <p className="text-muted-foreground">Loading provider...</p>
+      </div>
+    );
+  }
 
   if (!provider) {
     return (
@@ -76,17 +106,53 @@ export default function Booking() {
   const isClosed = hours?.closed;
 
   const handlePaymentAndBooking = async () => {
+    if (!user) {
+      toast({
+        title: "Please log in",
+        description: "You need to be logged in to book",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!selectedService || !date || !selectedSlot || !address) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    toast({
-      title: "Payment Successful & Booking Confirmed!",
-      description: `Your appointment with ${provider.businessName} is confirmed for ${date ? format(date, "MMM d") : ''} at ${selectedSlot}.`,
-    });
-    
-    setBookedSlots(prev => [...prev, selectedSlot]);
-    setIsSubmitting(false);
-    setStep(3);
+    try {
+      const booking = await bookingAPI.create({
+        customerId: user.id,
+        providerId: provider.id,
+        serviceId: selectedService,
+        categoryId: provider.categories[0],
+        dateTime: new Date(selectedSlot).toISOString(),
+        address,
+        notes,
+        status: 'pending',
+      });
+
+      toast({
+        title: "Payment Successful & Booking Confirmed!",
+        description: `Your appointment with ${provider.businessName} is confirmed for ${date ? format(date, "MMM d") : ''} at ${selectedSlot}.`,
+      });
+      
+      setBookedSlots(prev => [...prev, selectedSlot]);
+      setStep(3);
+    } catch (error) {
+      toast({
+        title: "Booking failed",
+        description: error instanceof Error ? error.message : "Could not create booking",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (step === 3) {

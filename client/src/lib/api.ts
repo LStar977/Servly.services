@@ -37,6 +37,17 @@ export const authAPI = {
     if (!res.ok) throw new Error(data.message || 'Failed to fetch user');
     return data.user;
   },
+
+  updateUser: async (id: string, updates: any) => {
+    const res = await fetch(`${API_BASE}/users/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to update user');
+    return data.user;
+  },
 };
 
 // Categories
