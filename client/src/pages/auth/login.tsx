@@ -40,9 +40,9 @@ export default function Login() {
     }
   }
 
-  const handleSocialLogin = (provider: string) => {
+  const handleSocialLogin = (provider: string, role: string = 'customer') => {
     // Redirect to Replit Auth which handles Google, Apple, GitHub, etc.
-    window.location.href = "/api/login";
+    window.location.href = `/api/login?role=${role}`;
   };
 
   return (
@@ -114,13 +114,34 @@ export default function Login() {
           </Form>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Signing in as a customer or provider?</p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => handleSocialLogin("apple", "customer")}
+              >
+                <Apple className="mr-2 h-4 w-4" />
+                Customer
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => handleSocialLogin("apple", "provider")}
+              >
+                <Apple className="mr-2 h-4 w-4" />
+                Provider
+              </Button>
+            </div>
+          </div>
           <div className="relative w-full">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
+                Or email login
               </span>
             </div>
           </div>

@@ -80,6 +80,8 @@ export async function setupAuth(app: Express) {
     const user: any = {};
     updateUserSession(user, tokens);
     const claims = tokens.claims();
+    // Store role in user object to be serialized
+    user.oauthRole = 'customer';
     await upsertUser(claims, 'customer');
     verified(null, user);
   };
@@ -107,6 +109,9 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
+    const role = req.query.role as string || 'customer';
+    (req.session as any).oauthRole = role;
+    req.session.save();
     ensureStrategy(req.hostname);
     passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
@@ -117,9 +122,14 @@ export async function setupAuth(app: Express) {
   app.get("/api/callback", (req, res, next) => {
     ensureStrategy(req.hostname);
     passport.authenticate(`replitauth:${req.hostname}`, {
-      successReturnToOrRedirect: "/customer/dashboard",
       failureRedirect: "/auth/login",
-    })(req, res, next);
+    })(req, res, (err: any) => {
+      if (err) return next(err);
+      // Get the role from session
+      const role = (req.session as any).oauthRole || 'customer';
+      const redirectUrl = role === 'provider' ? '/provider/dashboard' : '/customer/dashboard';
+      res.redirect(redirectUrl);
+    });
   });
 
   app.get("/api/logout", (req, res) => {
