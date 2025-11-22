@@ -48,6 +48,17 @@ export const authAPI = {
     if (!res.ok) throw new Error(data.message || 'Failed to update user');
     return data.user;
   },
+
+  claimAdmin: async () => {
+    const res = await fetch(`${API_BASE}/auth/claim-admin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to claim admin');
+    return data.user;
+  },
 };
 
 // Categories

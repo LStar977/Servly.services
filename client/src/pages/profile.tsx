@@ -239,6 +239,20 @@ export default function Profile() {
     }, 2000);
   };
 
+  const handleClaimAdmin = async () => {
+    try {
+      const adminUser = await authAPI.claimAdmin();
+      // Update user in context
+      window.location.href = '/admin/dashboard';
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Could not claim admin",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background py-12">
       <div className="container mx-auto px-4 max-w-2xl">
@@ -252,6 +266,16 @@ export default function Profile() {
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="general">General Info</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
+            {user?.email === 'sservly@gmail.com' && user?.role !== 'admin' && (
+              <Button 
+                onClick={handleClaimAdmin} 
+                size="sm"
+                className="col-span-2 mt-2"
+                variant="outline"
+              >
+                Claim Admin Access
+              </Button>
+            )}
           </TabsList>
 
           {/* General Info Tab */}

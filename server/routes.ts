@@ -266,6 +266,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Claim Admin Route
+  app.post("/api/auth/claim-admin", async (req, res) => {
+    try {
+      if (!req.user || !(req.user as any).email) {
+        res.status(401).json({ message: "Not authenticated" });
+        return;
+      }
+      
+      const userEmail = (req.user as any).email;
+      const adminEmail = "sservly@gmail.com";
+      
+      if (userEmail !== adminEmail) {
+        res.status(403).json({ message: "Only the admin email can claim admin access" });
+        return;
+      }
+      
+      const updatedUser = await storage.updateUser((req.user as any).id, { role: 'admin' });
+      res.json({ user: { ...updatedUser, password: undefined } });
+    } catch (error: any) {
+      console.error("Claim admin error:", error);
+      res.status(400).json({ message: error.message || "Failed to claim admin" });
+    }
+  });
+
   // Admin Settings Routes
   app.get("/api/admin/settings", async (req, res) => {
     try {
