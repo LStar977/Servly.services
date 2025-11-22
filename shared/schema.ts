@@ -26,6 +26,8 @@ export const users = pgTable("users", {
   role: text("role").notNull().default("customer"), // 'customer', 'provider', 'admin'
   avatar: text("avatar"),
   profileImageUrl: text("profile_image_url"),
+  phone: text("phone"),
+  bio: text("bio"),
   country: text("country"),
   province: text("province"), // province/state
   city: text("city"),

@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { Mail, Phone, MapPin, Save, Camera, Smartphone, Shield, Trash2, LogOut, Check, Copy, Eye, EyeOff } from "lucide-react";
+import { Mail, Phone, MapPin, Save, Camera, Smartphone, Shield, Trash2, LogOut, Check, Copy, Eye, EyeOff, User } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 
 const PRESET_AVATARS = [
@@ -51,7 +51,9 @@ export default function Profile() {
     email: user?.email || '',
     phone: user?.phone || '',
     bio: user?.bio || '',
-    location: user?.city || '',
+    country: user?.country || 'Canada',
+    province: user?.province || '',
+    city: user?.city || '',
     avatar: user?.avatar || PRESET_AVATARS[0],
   });
 
@@ -88,6 +90,11 @@ export default function Profile() {
       await authAPI.updateUser(user.id, {
         name: formData.name,
         email: formData.email,
+        phone: formData.phone,
+        bio: formData.bio,
+        country: formData.country,
+        province: formData.province,
+        city: formData.city,
         avatar: formData.avatar,
       });
       toast({
