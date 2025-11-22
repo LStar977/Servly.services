@@ -54,15 +54,15 @@ export default function ServiceSearch() {
     loadServices();
   }, []);
 
-  const loadServices = async (filters = {}) => {
+  const loadServices = async (filters: { search?: string; category?: string; city?: string; minPrice?: number; maxPrice?: number } = {}) => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
-      if (filters.search) params.append("search", filters.search as string);
-      if (filters.category) params.append("category", filters.category as string);
-      if (filters.city) params.append("city", filters.city as string);
-      if (filters.minPrice) params.append("minPrice", filters.minPrice as string);
-      if (filters.maxPrice) params.append("maxPrice", filters.maxPrice as string);
+      if (filters.search) params.append("search", filters.search);
+      if (filters.category) params.append("category", filters.category);
+      if (filters.city) params.append("city", filters.city);
+      if (filters.minPrice) params.append("minPrice", filters.minPrice.toString());
+      if (filters.maxPrice) params.append("maxPrice", filters.maxPrice.toString());
 
       const response = await fetch(`/api/services/search?${params.toString()}`, {
         credentials: "include",
