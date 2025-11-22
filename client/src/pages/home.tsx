@@ -67,9 +67,14 @@ export default function Home() {
               </form>
               
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/search">
+                <Link href="/services">
                   <Button size="lg" className="h-14 px-8 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all">
-                    Find Services Near You
+                    Browse All Services
+                  </Button>
+                </Link>
+                <Link href="/search">
+                  <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-xl bg-background border-2 hover:bg-muted">
+                    Find Service Providers
                   </Button>
                 </Link>
                 <Link href="/auth/signup?role=provider">
