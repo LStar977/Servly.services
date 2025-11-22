@@ -307,7 +307,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
-      const updatedUser = await storage.updateUser(userId, { role: 'admin' });
+      const updatedUser = await storage.updateUser(userId || '', { role: 'admin' });
       res.json({ user: { ...updatedUser, password: undefined } });
     } catch (error: any) {
       console.error("Claim admin error:", error);

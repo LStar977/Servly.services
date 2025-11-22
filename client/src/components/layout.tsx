@@ -38,6 +38,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
+            {user?.role === 'admin' && (
+              <Link href="/admin/dashboard">
+                <span className="text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer font-semibold">
+                  Admin
+                </span>
+              </Link>
+            )}
             <Link href="/how-it-works">
               <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
                 How it Works
@@ -149,6 +156,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <div className="border-t pt-4 flex flex-col gap-2">
                 {user && user.role ? (
                   <>
+                    {user.role === 'admin' && (
+                      <Link href="/admin/dashboard">
+                        <Button className="w-full justify-start text-primary font-semibold" variant="ghost" onClick={() => setIsMobileMenuOpen(false)}>
+                          Admin
+                        </Button>
+                      </Link>
+                    )}
                     <Link href={`/${user.role}/dashboard`}>
                        <Button className="w-full justify-start" variant="ghost" onClick={() => setIsMobileMenuOpen(false)}>
                           <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
