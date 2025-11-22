@@ -49,7 +49,7 @@ interface Service {
 export default function ServiceSearch() {
   const { toast } = useToast();
   const [services, setServices] = useState<Service[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -57,6 +57,10 @@ export default function ServiceSearch() {
   const [cityInput, setCityInput] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+
+  useEffect(() => {
+    loadServices();
+  }, []);
 
   // Get city suggestions based on input
   const citySuggestions = useMemo(() => {
