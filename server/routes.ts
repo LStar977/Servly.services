@@ -82,7 +82,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const oauthUser = req.user as any;
         const dbUser = await storage.getUserByEmail(oauthUser.claims.email);
         if (dbUser) {
-          return res.json({ user: { ...dbUser, password: undefined } });
+          // Construct name from firstName/lastName if name is not set
+          const userName = dbUser.name || `${dbUser.firstName || ''} ${dbUser.lastName || ''}`.trim();
+          return res.json({ user: { ...dbUser, name: userName, password: undefined } });
         }
       }
       // Check if user is authenticated via email/password (check session cookie)
