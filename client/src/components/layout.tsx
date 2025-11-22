@@ -38,13 +38,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
-            {user?.role === 'admin' && (
-              <Link href="/admin/dashboard">
-                <span className="text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer font-semibold">
-                  Admin
-                </span>
-              </Link>
-            )}
             <Link href="/how-it-works">
               <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
                 How it Works
@@ -65,6 +58,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 Contact
               </span>
             </Link>
+            {user?.role === 'admin' && (
+              <Link href="/admin/dashboard">
+                <span className="text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer font-semibold">
+                  Admin
+                </span>
+              </Link>
+            )}
           </nav>
 
           {/* Auth / User Menu */}
