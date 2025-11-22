@@ -237,7 +237,7 @@ export default function CustomerDashboard() {
           </DialogHeader>
           
           {selectedInvoice && (() => {
-            const booking = mockBookings.find(b => b.id === selectedInvoice);
+            const booking = myBookings.find((b: Booking) => b.id === selectedInvoice);
             const provider = mockProviders.find(p => p.id === booking?.providerId);
             const service = provider?.services.find(s => s.id === booking?.serviceId);
             

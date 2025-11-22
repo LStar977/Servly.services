@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { mockProviders } from "@/lib/data";
-import { Send, CheckCircle, MapPin, Star, ArrowRight } from "lucide-react";
+import { Send, CheckCircle, MapPin, Star, ArrowRight, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { providerAPI } from "@/lib/api";
+import type { ProviderProfile } from "@/lib/data";
 
 interface Message {
   type: 'user' | 'bot';
@@ -29,8 +30,21 @@ export default function AIAssistChat({ open, onOpenChange }: AIAssistChatProps) 
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [providers, setProviders] = useState<ProviderProfile[]>([]);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const loadProviders = async () => {
+      try {
+        const data = await providerAPI.getAll();
+        setProviders(data);
+      } catch (error) {
+        console.error("Failed to load providers:", error);
+      }
+    };
+    loadProviders();
+  }, []);
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -61,20 +75,20 @@ export default function AIAssistChat({ open, onOpenChange }: AIAssistChatProps) 
         };
         setMessages(prev => [...prev, bookingConfirm]);
       } else {
-        // First request - provide recommendations
-        const recommendations = mockProviders.filter(p => 
-          currentInput.toLowerCase().includes('plumb') || 
-          currentInput.toLowerCase().includes('leak') ||
-          currentInput.toLowerCase().includes('clean') ||
-          currentInput.toLowerCase().includes('detailing')
-        );
+        // First request - provide recommendations from real database
+        const recommendations = providers.filter(p => {
+          const searchTerm = currentInput.toLowerCase();
+          return p.businessName.toLowerCase().includes(searchTerm) ||
+                 p.description.toLowerCase().includes(searchTerm) ||
+                 p.categories.some(cat => cat.toLowerCase().includes(searchTerm));
+        });
 
-        const responseContent = `I found ${recommendations.length} top-rated providers available tomorrow. Shall I book one for you?`;
+        const responseContent = `I found ${recommendations.length > 0 ? recommendations.length : 'several'} top-rated providers available tomorrow. Shall I book one for you?`;
         
         const botMessage: Message = {
           type: 'bot',
           content: responseContent,
-          recommendations: recommendations.length > 0 ? recommendations : mockProviders.slice(0, 3),
+          recommendations: recommendations.length > 0 ? recommendations : providers.slice(0, 3),
         };
         setMessages(prev => [...prev, botMessage]);
       }
