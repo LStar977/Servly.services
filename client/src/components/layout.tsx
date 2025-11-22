@@ -18,7 +18,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const isAuthPage = location.startsWith("/auth");
+  const isAuthPage = location ? location.startsWith("/auth") : false;
 
   if (isAuthPage) {
     return <main>{children}</main>;

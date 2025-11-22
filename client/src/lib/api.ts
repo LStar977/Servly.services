@@ -20,7 +20,7 @@ export const authAPI = {
     return data.user;
   },
 
-  signup: async (userData: { username: string; email: string; password: string; name: string; role: 'customer' | 'provider' | 'admin' }) => {
+  signup: async (userData: { username?: string; email: string; password: string; name: string; role: 'customer' | 'provider' | 'admin'; country?: string; province?: string; city?: string }) => {
     const res = await fetch(`${API_BASE}/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
