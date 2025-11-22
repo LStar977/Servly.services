@@ -1,12 +1,12 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { User, mockUsers, mockProviders } from "./data";
-import { supabase } from "./supabase";
+import { User } from "./data";
+import { authAPI } from "./api";
 
 type AuthContextType = {
   user: User | null;
-  login: (email: string, role?: User['role']) => Promise<void>;
-  signup: (userData: Partial<User>) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (userData: { username: string; email: string; password: string; name: string; role: User['role'] }) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 };
@@ -18,78 +18,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const login = async (email: string, role?: User['role']) => {
+  const login = async (email: string, password: string) => {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const foundUser = mockUsers.find(u => u.email === email);
-    
-    if (foundUser) {
-      setUser(foundUser);
+    try {
+      const loggedInUser = await authAPI.login(email, password);
+      setUser(loggedInUser);
       toast({
         title: "Welcome back!",
-        description: `Logged in as ${foundUser.name} (${foundUser.role})`,
+        description: `Logged in as ${loggedInUser.name}`,
       });
-    } else {
-      // For demo purposes, create a mock user if not found
-      const newUser: User = {
-        id: Math.random().toString(36).substr(2, 9),
-        email,
-        name: email.split('@')[0],
-        role: role || 'customer',
-        createdAt: new Date().toISOString()
-      };
-      setUser(newUser);
-      
-      // Also add to waitlist since this is a new mock user
-      try {
-        await supabase
-          .from('waitlist')
-          .insert([{ email, role: role || 'customer' }]);
-      } catch (err) {
-        console.error("Failed to add to waitlist", err);
-      }
-
+    } catch (error) {
       toast({
-        title: "Welcome!",
-        description: `Created new demo account for ${email}`,
+        title: "Login failed",
+        description: error instanceof Error ? error.message : "Invalid credentials",
+        variant: "destructive",
       });
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
-  const signup = async (userData: Partial<User>) => {
+  const signup = async (userData: { username: string; email: string; password: string; name: string; role: User['role'] }) => {
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const newUser: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: userData.name || 'New User',
-      email: userData.email || 'user@example.com',
-      role: userData.role || 'customer',
-      createdAt: new Date().toISOString(),
-      ...userData
-    };
-    
-    setUser(newUser);
-    
-    // Add to Supabase Waitlist for marketing
-    if (userData.email) {
-      try {
-        await supabase
-          .from('waitlist')
-          .insert([{ email: userData.email, role: userData.role || 'customer' }]);
-      } catch (err) {
-        console.error("Failed to add to waitlist", err);
-      }
+    try {
+      const newUser = await authAPI.signup(userData);
+      setUser(newUser);
+      toast({
+        title: "Account created",
+        description: "Welcome to Servly!",
+      });
+    } catch (error) {
+      toast({
+        title: "Signup failed",
+        description: error instanceof Error ? error.message : "Could not create account",
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
-
-    toast({
-      title: "Account created",
-      description: "Welcome to Servly!",
-    });
-    setIsLoading(false);
   };
 
   const logout = () => {
