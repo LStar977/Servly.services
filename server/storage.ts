@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Booking, type InsertBooking, type Service, type InsertService, type ProviderProfile, type InsertProviderProfile, type Category, type InsertCategory, users, bookings, services, providerProfiles, categories } from "@shared/schema";
+import { type User, type InsertUser, type Booking, type InsertBooking, type Service, type InsertService, type ProviderProfile, type InsertProviderProfile, type Category, type InsertCategory, type PlatformSettings, type InsertPlatformSettings, users, bookings, services, providerProfiles, categories, platformSettings } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
 import { hash, compare } from "bcryptjs";
@@ -33,6 +33,10 @@ export interface IStorage {
   getBookingsByProviderId(providerId: string): Promise<Booking[]>;
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBookingStatus(id: string, status: string): Promise<Booking | undefined>;
+
+  // Platform Settings
+  getPlatformSettings(): Promise<PlatformSettings>;
+  updatePlatformSettings(updates: Partial<InsertPlatformSettings>): Promise<PlatformSettings>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -160,6 +164,27 @@ export class DatabaseStorage implements IStorage {
 
   async updateBookingStatus(id: string, status: string): Promise<Booking | undefined> {
     const result = await db.update(bookings).set({ status }).where(eq(bookings.id, id)).returning();
+    return result[0];
+  }
+
+  async getPlatformSettings(): Promise<PlatformSettings> {
+    const result = await db.select().from(platformSettings).where(eq(platformSettings.id, "main"));
+    return result[0] || {
+      id: "main",
+      feePercentage: "15",
+      basicMonthlyPrice: "9.99",
+      proMonthlyPrice: "29.99",
+      premiumMonthlyPrice: "99.99",
+      updatedAt: new Date(),
+    };
+  }
+
+  async updatePlatformSettings(updates: Partial<InsertPlatformSettings>): Promise<PlatformSettings> {
+    const result = await db
+      .update(platformSettings)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(platformSettings.id, "main"))
+      .returning();
     return result[0];
   }
 }

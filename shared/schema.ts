@@ -130,3 +130,21 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
 
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type Booking = typeof bookings.$inferSelect;
+
+// Platform Settings table
+export const platformSettings = pgTable("platform_settings", {
+  id: varchar("id").primaryKey().default("main"),
+  feePercentage: numeric("fee_percentage", { precision: 5, scale: 2 }).notNull().default("15"), // Fee percentage platform takes from jobs
+  basicMonthlyPrice: numeric("basic_monthly_price", { precision: 10, scale: 2 }).notNull().default("9.99"),
+  proMonthlyPrice: numeric("pro_monthly_price", { precision: 10, scale: 2 }).notNull().default("29.99"),
+  premiumMonthlyPrice: numeric("premium_monthly_price", { precision: 10, scale: 2 }).notNull().default("99.99"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertPlatformSettingsSchema = createInsertSchema(platformSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertPlatformSettings = z.infer<typeof insertPlatformSettingsSchema>;
+export type PlatformSettings = typeof platformSettings.$inferSelect;
