@@ -67,7 +67,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(401).json({ message: "Invalid credentials" });
         return;
       }
-      res.json({ user: { ...user, password: undefined } });
+      
+      // Establish session for email/password login
+      req.login(user, (err) => {
+        if (err) {
+          console.error("Session error:", err);
+          res.status(400).json({ message: "Failed to establish session" });
+          return;
+        }
+        res.json({ user: { ...user, password: undefined } });
+      });
     } catch (error: any) {
       console.error("Login error:", error);
       res.status(400).json({ message: error.message || "Login failed" });
@@ -269,20 +278,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Claim Admin Route
   app.post("/api/auth/claim-admin", async (req, res) => {
     try {
-      if (!req.user || !(req.user as any).email) {
+      let userEmail: string | null = null;
+      let userId: string | null = null;
+      
+      // Check if user is authenticated via OAuth session
+      if (req.user && (req.user as any).claims) {
+        const oauthUser = req.user as any;
+        userEmail = oauthUser.claims.email;
+        const dbUser = await storage.getUserByEmail(userEmail);
+        if (dbUser) {
+          userId = dbUser.id;
+        }
+      }
+      // Check if user is authenticated via email/password (check session)
+      else if (req.user && (req.user as any).email) {
+        userEmail = (req.user as any).email;
+        userId = (req.user as any).id;
+      }
+      
+      if (!userEmail || !userId) {
         res.status(401).json({ message: "Not authenticated" });
         return;
       }
       
-      const userEmail = (req.user as any).email;
       const adminEmail = "sservly@gmail.com";
-      
       if (userEmail !== adminEmail) {
         res.status(403).json({ message: "Only the admin email can claim admin access" });
         return;
       }
       
-      const updatedUser = await storage.updateUser((req.user as any).id, { role: 'admin' });
+      const updatedUser = await storage.updateUser(userId, { role: 'admin' });
       res.json({ user: { ...updatedUser, password: undefined } });
     } catch (error: any) {
       console.error("Claim admin error:", error);
