@@ -41,11 +41,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { email, password } = req.body;
+      
+      if (!email || !password) {
+        res.status(400).json({ message: "Email and password are required" });
+        return;
+      }
+      
       const user = await storage.getUserByEmail(email);
       if (!user) {
         res.status(401).json({ message: "Invalid credentials" });
         return;
       }
+      
+      // Check if user has a password (OAuth users may not)
+      if (!user.password) {
+        res.status(401).json({ message: "This account uses social login. Please sign in with Google or Apple." });
+        return;
+      }
+      
       const isValid = await compare(password, user.password);
       if (!isValid) {
         res.status(401).json({ message: "Invalid credentials" });
@@ -53,7 +66,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json({ user: { ...user, password: undefined } });
     } catch (error: any) {
-      res.status(400).json({ message: error.message });
+      console.error("Login error:", error);
+      res.status(400).json({ message: error.message || "Login failed" });
     }
   });
 
