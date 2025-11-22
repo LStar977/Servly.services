@@ -19,6 +19,9 @@ const formSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
   role: z.enum(["customer", "provider"]),
   username: z.string().optional(),
+  country: z.string().optional(),
+  province: z.string().optional(),
+  city: z.string().optional(),
 });
 
 export default function Signup() {
@@ -38,8 +41,23 @@ export default function Signup() {
       email: "",
       password: "",
       role: defaultRole,
+      country: "Canada",
+      province: "",
+      city: "",
     },
   });
+
+  const countries = ["Canada", "United States", "Mexico", "United Kingdom", "Australia"];
+  const provinces: { [key: string]: string[] } = {
+    "Canada": ["Alberta", "British Columbia", "Manitoba", "New Brunswick", "Newfoundland and Labrador", "Nova Scotia", "Ontario", "Prince Edward Island", "Quebec", "Saskatchewan"],
+    "United States": ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia"],
+  };
+  const cities: { [key: string]: string[] } = {
+    "Alberta": ["Calgary", "Edmonton", "Red Deer", "Lethbridge"],
+    "British Columbia": ["Vancouver", "Victoria", "Surrey", "Burnaby"],
+    "Ontario": ["Toronto", "Ottawa", "Mississauga", "Hamilton"],
+    "Quebec": ["Montreal", "Quebec City", "Gatineau", "Longueuil"],
+  };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -171,6 +189,62 @@ export default function Signup() {
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="country"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Country</FormLabel>
+                    <FormControl>
+                      <select {...field} className="w-full h-10 px-3 py-2 rounded-lg border border-input bg-background text-foreground">
+                        <option value="">Select country</option>
+                        {countries.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {form.watch("country") && (
+                <FormField
+                  control={form.control}
+                  name="province"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Province/State</FormLabel>
+                      <FormControl>
+                        <select {...field} className="w-full h-10 px-3 py-2 rounded-lg border border-input bg-background text-foreground">
+                          <option value="">Select province/state</option>
+                          {(provinces[form.watch("country")] || []).map(p => <option key={p} value={p}>{p}</option>)}
+                        </select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {form.watch("province") && (
+                <FormField
+                  control={form.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>City</FormLabel>
+                      <FormControl>
+                        <select {...field} className="w-full h-10 px-3 py-2 rounded-lg border border-input bg-background text-foreground">
+                          <option value="">Select city</option>
+                          {(cities[form.watch("province")] || []).map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
               <Button type="submit" className="w-full h-11" disabled={isLoading}>
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Create Account"}
               </Button>
