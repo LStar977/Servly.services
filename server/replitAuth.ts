@@ -49,13 +49,14 @@ function updateUserSession(
   user.expires_at = user.claims?.exp;
 }
 
-async function upsertUser(claims: any) {
+async function upsertUser(claims: any, role: string = 'customer') {
   await storage.upsertUser({
     id: claims["sub"],
     email: claims["email"],
     firstName: claims["first_name"],
     lastName: claims["last_name"],
     profileImageUrl: claims["profile_image_url"],
+    role: role,
   });
 }
 
@@ -73,7 +74,8 @@ export async function setupAuth(app: Express) {
   ) => {
     const user: any = {};
     updateUserSession(user, tokens);
-    await upsertUser(tokens.claims());
+    const claims = tokens.claims();
+    await upsertUser(claims, 'customer');
     verified(null, user);
   };
 
@@ -110,7 +112,7 @@ export async function setupAuth(app: Express) {
   app.get("/api/callback", (req, res, next) => {
     ensureStrategy(req.hostname);
     passport.authenticate(`replitauth:${req.hostname}`, {
-      successReturnToOrRedirect: "/",
+      successReturnToOrRedirect: "/customer/dashboard",
       failureRedirect: "/auth/login",
     })(req, res, next);
   });

@@ -70,6 +70,7 @@ export class DatabaseStorage implements IStorage {
         firstName: userData.firstName,
         lastName: userData.lastName,
         profileImageUrl: userData.profileImageUrl,
+        role: userData.role || 'customer',
         updatedAt: new Date(),
       })
       .onConflictDoUpdate({

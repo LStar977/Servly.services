@@ -51,10 +51,10 @@ export default function Signup() {
   }
 
   const handleSocialSignup = (provider: string) => {
-    toast({
-      title: `Connecting to ${provider}`,
-      description: "This is a simulation. In a real app, this would redirect to the provider.",
-    });
+    // Store the role in session storage so we can apply it after OAuth redirect
+    sessionStorage.setItem('signupRole', form.getValues('role'));
+    // Redirect to Replit Auth which handles Google, Apple, GitHub, etc.
+    window.location.href = "/api/login";
   };
 
   return (
