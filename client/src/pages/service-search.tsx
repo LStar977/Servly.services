@@ -128,12 +128,12 @@ export default function ServiceSearch() {
 
         {/* Filters */}
         {showFilters && (
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-lg">Search & Filter</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="text-lg">Search & Filter</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Service or Provider</label>
                 <div className="relative">
@@ -196,26 +196,26 @@ export default function ServiceSearch() {
               </div>
             </div>
 
-            <div className="flex gap-2 pt-4">
-              <Button 
-                onClick={handleSearch} 
-                className="flex-1 md:flex-none bg-primary hover:bg-primary/90"
-                data-testid="button-search"
-              >
-                <SearchIcon className="h-4 w-4 mr-2" />
-                Search Services
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={handleReset} 
-                className="flex-1 md:flex-none"
-                data-testid="button-reset-filters"
-              >
-                Clear
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="flex gap-2 pt-4">
+                <Button 
+                  onClick={handleSearch} 
+                  className="flex-1 md:flex-none bg-primary hover:bg-primary/90"
+                  data-testid="button-search"
+                >
+                  <SearchIcon className="h-4 w-4 mr-2" />
+                  Search Services
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={handleReset} 
+                  className="flex-1 md:flex-none"
+                  data-testid="button-reset-filters"
+                >
+                  Clear
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
 
