@@ -62,7 +62,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Auth / User Menu */}
           <div className="hidden md:flex items-center gap-4">
-            {user ? (
+            {user && user.name ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -75,7 +75,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user.name}</p>
+                      <p className="text-sm font-medium leading-none">{user.name || 'User'}</p>
                       <p className="text-xs leading-none text-muted-foreground">
                         {user.email}
                       </p>
@@ -147,7 +147,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </span>
               </Link>
               <div className="border-t pt-4 flex flex-col gap-2">
-                {user ? (
+                {user && user.role ? (
                   <>
                     <Link href={`/${user.role}/dashboard`}>
                        <Button className="w-full justify-start" variant="ghost" onClick={() => setIsMobileMenuOpen(false)}>
