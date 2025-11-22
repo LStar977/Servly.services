@@ -8,16 +8,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth Routes
   app.post("/api/auth/signup", async (req, res) => {
     try {
-      const data = insertUserSchema.parse(req.body);
-      const existingUser = await storage.getUserByEmail(data.email);
+      const { email, password, name, username, role } = req.body;
+      
+      if (!email || !password || !name) {
+        res.status(400).json({ message: "Email, password, and name are required" });
+        return;
+      }
+
+      const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
         res.status(400).json({ message: "Email already registered" });
         return;
       }
-      const user = await storage.createUser(data);
+      
+      const user = await storage.createUser({
+        email,
+        password,
+        name,
+        username: username || name.toLowerCase().replace(/\s+/g, ''),
+        role: role || 'customer',
+      });
+      
       res.json({ user: { ...user, password: undefined } });
     } catch (error: any) {
-      res.status(400).json({ message: error.message });
+      console.error("Signup error:", error);
+      res.status(400).json({ message: error.message || "Signup failed" });
     }
   });
 

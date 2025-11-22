@@ -34,6 +34,9 @@ export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  password: z.string().min(6).optional(),
+  username: z.string().optional(),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
