@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, MapPin, Search as SearchIcon, DollarSign, Loader2 } from "lucide-react";
+import { Star, MapPin, Search as SearchIcon, DollarSign, Loader2, SlidersHorizontal, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const SERVICE_CATEGORIES = [
@@ -44,6 +44,7 @@ export default function ServiceSearch() {
   const { toast } = useToast();
   const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
@@ -112,7 +113,21 @@ export default function ServiceSearch() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Filters Toggle Button (Mobile) */}
+        <div className="md:hidden mb-4">
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+            className="w-full flex items-center justify-center gap-2"
+            data-testid="toggle-filters-button"
+          >
+            {showFilters ? <X className="h-4 w-4" /> : <SlidersHorizontal className="h-4 w-4" />}
+            {showFilters ? "Hide Filters" : "Show Filters"}
+          </Button>
+        </div>
+
         {/* Filters */}
+        {showFilters && (
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="text-lg">Search & Filter</CardTitle>
@@ -181,16 +196,28 @@ export default function ServiceSearch() {
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2">
-              <Button onClick={handleSearch} className="flex-1 md:flex-none">
-                Search
+            <div className="flex gap-2 pt-4">
+              <Button 
+                onClick={handleSearch} 
+                className="flex-1 md:flex-none bg-primary hover:bg-primary/90"
+                data-testid="button-search"
+              >
+                <SearchIcon className="h-4 w-4 mr-2" />
+                Search Services
               </Button>
-              <Button variant="outline" onClick={handleReset} className="flex-1 md:flex-none">
-                Clear Filters
+              <Button 
+                variant="outline" 
+                onClick={handleReset} 
+                className="flex-1 md:flex-none"
+                data-testid="button-reset-filters"
+              >
+                Clear
               </Button>
             </div>
           </CardContent>
         </Card>
+        )}
+
 
         {/* Results */}
         {isLoading ? (
