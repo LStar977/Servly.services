@@ -6,7 +6,7 @@ import { authAPI } from "./api";
 type AuthContextType = {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
-  signup: (userData: { username: string; email: string; password: string; name: string; role: User['role'] }) => Promise<void>;
+  signup: (userData: { username?: string; email: string; password: string; name: string; role: User['role']; country?: string; province?: string; city?: string }) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 };
@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signup = async (userData: { username: string; email: string; password: string; name: string; role: User['role'] }) => {
+  const signup = async (userData: { username?: string; email: string; password: string; name: string; role: User['role']; country?: string; province?: string; city?: string }) => {
     setIsLoading(true);
     try {
       const newUser = await authAPI.signup(userData);

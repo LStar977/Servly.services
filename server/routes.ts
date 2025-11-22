@@ -8,7 +8,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth Routes
   app.post("/api/auth/signup", async (req, res) => {
     try {
-      const { email, password, name, username, role } = req.body;
+      const { email, password, name, username, role, country, province, city } = req.body;
       
       if (!email || !password || !name) {
         res.status(400).json({ message: "Email, password, and name are required" });
@@ -27,6 +27,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name,
         username: username || name.toLowerCase().replace(/\s+/g, ''),
         role: role || 'customer',
+        country,
+        province,
+        city,
       });
       
       // Return user without password
@@ -53,9 +56,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
-      // Check if user has a password (OAuth users may not)
+      // If user doesn't have a password set (OAuth only), they can't use email/password login
       if (!user.password) {
-        res.status(401).json({ message: "This account uses social login. Please sign in with Google or Apple." });
+        res.status(401).json({ message: "Invalid credentials" });
         return;
       }
       
