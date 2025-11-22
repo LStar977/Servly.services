@@ -1,6 +1,6 @@
 import { type User, type InsertUser, type Booking, type InsertBooking, type Service, type InsertService, type ProviderProfile, type InsertProviderProfile, type Category, type InsertCategory, type PlatformSettings, type InsertPlatformSettings, users, bookings, services, providerProfiles, categories, platformSettings } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, or, like, gte, lte } from "drizzle-orm";
 import { hash, compare } from "bcryptjs";
 
 export interface IStorage {
@@ -19,6 +19,13 @@ export interface IStorage {
   getServicesByProviderId(providerId: string): Promise<Service[]>;
   createService(service: InsertService): Promise<Service>;
   deleteService(id: string): Promise<void>;
+  searchServices(filters: {
+    category?: string;
+    city?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    search?: string;
+  }): Promise<Array<Service & { provider: ProviderProfile; categoryName?: string }>>;
 
   // Provider Profiles
   getProviderProfile(userId: string): Promise<ProviderProfile | undefined>;
@@ -118,6 +125,64 @@ export class DatabaseStorage implements IStorage {
 
   async deleteService(id: string): Promise<void> {
     await db.delete(services).where(eq(services.id, id));
+  }
+
+  async searchServices(filters: {
+    category?: string;
+    city?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    search?: string;
+  }): Promise<Array<Service & { provider: ProviderProfile; categoryName?: string }>> {
+    let query = db
+      .select({
+        service: services,
+        provider: providerProfiles,
+        category: categories,
+      })
+      .from(services)
+      .innerJoin(providerProfiles, eq(services.providerId, providerProfiles.userId))
+      .leftJoin(categories, eq(services.categoryId, categories.id));
+
+    const conditions = [];
+
+    if (filters.category) {
+      conditions.push(eq(services.categoryId, filters.category));
+    }
+
+    if (filters.city) {
+      conditions.push(like(providerProfiles.city, `%${filters.city}%`));
+    }
+
+    if (filters.minPrice !== undefined) {
+      conditions.push(gte(services.price, filters.minPrice.toString()));
+    }
+
+    if (filters.maxPrice !== undefined) {
+      conditions.push(lte(services.price, filters.maxPrice.toString()));
+    }
+
+    if (filters.search) {
+      conditions.push(
+        or(
+          like(services.title, `%${filters.search}%`),
+          like(services.description, `%${filters.search}%`),
+          like(providerProfiles.businessName, `%${filters.search}%`)
+        )
+      );
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    const results = await query;
+    
+    return results.map(result => ({
+      ...result.service,
+      provider: result.provider,
+      categoryName: result.category?.name,
+    }));
   }
 
   async getProviderProfile(userId: string): Promise<ProviderProfile | undefined> {

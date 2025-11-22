@@ -219,6 +219,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/services/search", async (req, res) => {
+    try {
+      const { category, city, minPrice, maxPrice, search } = req.query;
+      const filters = {
+        category: category as string | undefined,
+        city: city as string | undefined,
+        minPrice: minPrice ? parseFloat(minPrice as string) : undefined,
+        maxPrice: maxPrice ? parseFloat(maxPrice as string) : undefined,
+        search: search as string | undefined,
+      };
+      const results = await storage.searchServices(filters);
+      res.json({ services: results });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   // Bookings Routes
   app.get("/api/bookings/:id", async (req, res) => {
     try {
