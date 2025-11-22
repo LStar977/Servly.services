@@ -9,6 +9,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  upsertUser(user: any): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
 
   // Categories
@@ -51,16 +52,42 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    const hashedPassword = await hash(user.password, 10);
+    const hashedPassword = user.password ? await hash(user.password, 10) : undefined;
     const result = await db.insert(users).values({
       ...user,
       password: hashedPassword,
+      updatedAt: new Date(),
     }).returning();
     return result[0];
   }
 
+  async upsertUser(userData: any): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values({
+        id: userData.id,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        profileImageUrl: userData.profileImageUrl,
+        updatedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          email: userData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          profileImageUrl: userData.profileImageUrl,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
   async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
-    const result = await db.update(users).set(updates).where(eq(users.id, id)).returning();
+    const result = await db.update(users).set({ ...updates, updatedAt: new Date() }).where(eq(users.id, id)).returning();
     return result[0];
   }
 

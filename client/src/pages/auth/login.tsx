@@ -41,10 +41,8 @@ export default function Login() {
   }
 
   const handleSocialLogin = (provider: string) => {
-    toast({
-      title: `Connecting to ${provider}`,
-      description: "This is a simulation. In a real app, this would redirect to the provider.",
-    });
+    // Redirect to Replit Auth which handles Google, Apple, GitHub, etc.
+    window.location.href = "/api/login";
   };
 
   return (
