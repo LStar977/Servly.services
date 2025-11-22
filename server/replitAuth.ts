@@ -109,9 +109,6 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    const role = req.query.role as string || 'customer';
-    (req.session as any).oauthRole = role;
-    req.session.save();
     ensureStrategy(req.hostname);
     passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
@@ -125,10 +122,8 @@ export async function setupAuth(app: Express) {
       failureRedirect: "/auth/login",
     })(req, res, (err: any) => {
       if (err) return next(err);
-      // Get the role from session
-      const role = (req.session as any).oauthRole || 'customer';
-      const redirectUrl = role === 'provider' ? '/provider/dashboard' : '/customer/dashboard';
-      res.redirect(redirectUrl);
+      // After OAuth, redirect to role selection
+      res.redirect('/auth/role-selection');
     });
   });
 

@@ -12,6 +12,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Login from "@/pages/auth/login";
 import Signup from "@/pages/auth/signup";
+import RoleSelection from "@/pages/auth/role-selection";
 import Search from "@/pages/search";
 import Booking from "@/pages/booking";
 import Profile from "@/pages/profile";
@@ -34,6 +35,7 @@ function Router() {
         {/* Auth */}
         <Route path="/auth/login" component={Login} />
         <Route path="/auth/signup" component={Signup} />
+        <Route path="/auth/role-selection" component={RoleSelection} />
         
         {/* Main Flows */}
         <Route path="/search" component={Search} />

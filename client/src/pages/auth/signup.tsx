@@ -17,7 +17,6 @@ const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(["customer", "provider"]),
   username: z.string().optional(),
   country: z.string().min(1, "Please select a country").optional().or(z.literal("")),
   province: z.string().optional().or(z.literal("")),
@@ -28,10 +27,6 @@ export default function Signup() {
   const { signup, isLoading } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  
-  // check for query param ?role=provider
-  const urlParams = new URLSearchParams(window.location.search);
-  const defaultRole = urlParams.get('role') === 'provider' ? 'provider' : 'customer';
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -40,7 +35,6 @@ export default function Signup() {
       username: "",
       email: "",
       password: "",
-      role: defaultRole,
       country: "Canada",
       province: "",
       city: "",
@@ -65,15 +59,12 @@ export default function Signup() {
       const dataToSubmit = {
         ...values,
         username: values.username || values.name.toLowerCase().replace(/\s+/g, ''),
+        role: 'customer', // Default role, user selects after
       };
       await signup(dataToSubmit as any);
-      // Wait briefly for state update, then navigate
+      // Wait briefly for state update, then navigate to role selection
       setTimeout(() => {
-        if (values.role === 'customer') {
-          setLocation('/customer/dashboard');
-        } else {
-          setLocation('/provider/dashboard');
-        }
+        setLocation('/auth/role-selection');
       }, 500);
     } catch (error) {
       // Error is already handled by the signup function in auth context
@@ -82,9 +73,8 @@ export default function Signup() {
   }
 
   const handleSocialSignup = (provider: string) => {
-    // Store the role in session storage so we can apply it after OAuth redirect
-    sessionStorage.setItem('signupRole', form.getValues('role'));
     // Redirect to Replit Auth which handles Google, Apple, GitHub, etc.
+    // After OAuth, users will be taken to role selection
     window.location.href = "/api/login";
   };
 
@@ -116,45 +106,6 @@ export default function Signup() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel>I want to...</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="grid grid-cols-2 gap-4"
-                      >
-                        <div>
-                          <RadioGroupItem value="customer" id="customer-radio" className="peer sr-only" />
-                          <Label
-                            htmlFor="customer-radio"
-                            className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                          >
-                            <span className="text-xl mb-2">👤</span>
-                            <span className="font-semibold">Book Services</span>
-                          </Label>
-                        </div>
-                        <div>
-                          <RadioGroupItem value="provider" id="provider-radio" className="peer sr-only" />
-                          <Label
-                            htmlFor="provider-radio"
-                            className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                          >
-                            <span className="text-xl mb-2">💼</span>
-                            <span className="font-semibold">Offer Services</span>
-                          </Label>
-                        </div>
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
               <FormField
                 control={form.control}
                 name="name"
