@@ -19,9 +19,9 @@ const formSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
   role: z.enum(["customer", "provider"]),
   username: z.string().optional(),
-  country: z.string().optional(),
-  province: z.string().optional(),
-  city: z.string().optional(),
+  country: z.string().min(1, "Please select a country").optional().or(z.literal("")),
+  province: z.string().optional().or(z.literal("")),
+  city: z.string().optional().or(z.literal("")),
 });
 
 export default function Signup() {
@@ -48,11 +48,11 @@ export default function Signup() {
   });
 
   const countries = ["Canada", "United States", "Mexico", "United Kingdom", "Australia"];
-  const provinces: { [key: string]: string[] } = {
+  const provincesMap: Record<string, string[]> = {
     "Canada": ["Alberta", "British Columbia", "Manitoba", "New Brunswick", "Newfoundland and Labrador", "Nova Scotia", "Ontario", "Prince Edward Island", "Quebec", "Saskatchewan"],
     "United States": ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia"],
   };
-  const cities: { [key: string]: string[] } = {
+  const citiesMap: Record<string, string[]> = {
     "Alberta": ["Calgary", "Edmonton", "Red Deer", "Lethbridge"],
     "British Columbia": ["Vancouver", "Victoria", "Surrey", "Burnaby"],
     "Ontario": ["Toronto", "Ottawa", "Mississauga", "Hamilton"],
@@ -61,7 +61,12 @@ export default function Signup() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await signup(values);
+      // Generate username from name if not provided
+      const dataToSubmit = {
+        ...values,
+        username: values.username || values.name.toLowerCase().replace(/\s+/g, ''),
+      };
+      await signup(dataToSubmit as any);
       // Wait briefly for state update, then navigate
       setTimeout(() => {
         if (values.role === 'customer') {
@@ -217,7 +222,7 @@ export default function Signup() {
                       <FormControl>
                         <select {...field} className="w-full h-10 px-3 py-2 rounded-lg border border-input bg-background text-foreground">
                           <option value="">Select province/state</option>
-                          {(provinces[form.watch("country")] || []).map(p => <option key={p} value={p}>{p}</option>)}
+                          {(provincesMap[form.watch("country")] || []).map(p => <option key={p} value={p}>{p}</option>)}
                         </select>
                       </FormControl>
                       <FormMessage />
@@ -236,7 +241,7 @@ export default function Signup() {
                       <FormControl>
                         <select {...field} className="w-full h-10 px-3 py-2 rounded-lg border border-input bg-background text-foreground">
                           <option value="">Select city</option>
-                          {(cities[form.watch("province")] || []).map(c => <option key={c} value={c}>{c}</option>)}
+                          {(citiesMap[form.watch("province")] || []).map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                       </FormControl>
                       <FormMessage />
