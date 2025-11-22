@@ -1,12 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { mockProviders, categories } from "@/lib/data";
+import { categories } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, MapPin, Search as SearchIcon, SlidersHorizontal } from "lucide-react";
+import { Star, MapPin, Search as SearchIcon, SlidersHorizontal, Loader2 } from "lucide-react";
+import { providerAPI } from "@/lib/api";
+import { ProviderProfile } from "@/lib/data";
 
 export default function Search() {
   const [location] = useLocation();
@@ -15,10 +17,27 @@ export default function Search() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [providers, setProviders] = useState<ProviderProfile[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProviders = async () => {
+      try {
+        const data = await providerAPI.getAll();
+        setProviders(data);
+      } catch (error) {
+        console.error("Failed to load providers:", error);
+        setProviders([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadProviders();
+  }, []);
 
   // Filter providers logic
   const filteredProviders = useMemo(() => {
-    return mockProviders.filter(provider => {
+    return providers.filter(provider => {
       // Filter by category
       if (selectedCategory !== 'all') {
          const category = categories.find(c => c.slug === selectedCategory);
@@ -46,6 +65,7 @@ export default function Search() {
       {/* Search Header */}
       <div className="mb-8 space-y-4">
         <h1 className="text-3xl font-bold">Find a Professional</h1>
+        {isLoading && <p className="text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Loading providers...</p>}
         
         <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-xl shadow-sm border">
           <div className="flex-1 relative">

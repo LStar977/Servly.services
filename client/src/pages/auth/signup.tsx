@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
   email: z.string().email(),
   password: z.string().min(6, "Password must be at least 6 characters"),
   role: z.enum(["customer", "provider"]),
@@ -33,6 +34,7 @@ export default function Signup() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
+      username: "",
       email: "",
       password: "",
       role: defaultRole,
@@ -53,15 +55,6 @@ export default function Signup() {
       title: `Connecting to ${provider}`,
       description: "This is a simulation. In a real app, this would redirect to the provider.",
     });
-    // Simulate successful login after a short delay
-    setTimeout(() => {
-      signup({
-        name: `Demo ${provider} User`,
-        email: `demo-${provider.toLowerCase()}@example.com`,
-        role: 'customer'
-      });
-      setLocation("/customer/dashboard");
-    }, 1500);
   };
 
   return (

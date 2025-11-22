@@ -33,10 +33,10 @@ export default function Login() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await login(values.email);
+      await login(values.email, values.password);
       setLocation("/");
     } catch (err) {
-      setError("Invalid credentials");
+      setError(err instanceof Error ? err.message : "Invalid credentials");
     }
   }
 
@@ -45,11 +45,6 @@ export default function Login() {
       title: `Connecting to ${provider}`,
       description: "This is a simulation. In a real app, this would redirect to the provider.",
     });
-    // Simulate successful login after a short delay
-    setTimeout(() => {
-      login(`demo-${provider.toLowerCase()}@example.com`);
-      setLocation("/");
-    }, 1500);
   };
 
   return (

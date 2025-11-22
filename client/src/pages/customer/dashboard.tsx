@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { mockBookings, mockProviders } from "@/lib/data";
+import { useState, useEffect } from "react";
+import { mockProviders } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
+import { bookingAPI, providerAPI } from "@/lib/api";
+import type { Booking } from "@/lib/data";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,13 +24,31 @@ export default function CustomerDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  // Mock filtering bookings for this user
-  const myBookings = mockBookings.filter(b => b.customerId === (user?.id || 'u1'));
+  const [myBookings, setMyBookings] = useState<Booking[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedInvoice, setSelectedInvoice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const loadBookings = async () => {
+      try {
+        const bookings = await bookingAPI.getByCustomer(user.id);
+        setMyBookings(bookings);
+      } catch (error) {
+        console.error("Failed to load bookings:", error);
+        toast({
+          title: "Failed to load bookings",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadBookings();
+  }, [user?.id, toast]);
 
   const activeBookings = myBookings.filter(b => ['pending', 'accepted'].includes(b.status));
   const completedBookings = myBookings.filter(b => ['completed', 'cancelled', 'paid'].includes(b.status));
-
-  const [selectedInvoice, setSelectedInvoice] = useState<string | null>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
