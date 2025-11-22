@@ -66,22 +66,24 @@ export default function Home() {
                 </div>
               </form>
               
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/services">
-                  <Button size="lg" className="h-14 px-8 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all">
+              <div className="flex flex-col gap-4 max-w-lg">
+                <Link href="/services" className="w-full">
+                  <Button size="lg" className="h-14 px-8 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all w-full">
                     Browse All Services
                   </Button>
                 </Link>
-                <Link href="/search">
-                  <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-xl bg-background border-2 hover:bg-muted">
-                    Find Service Providers
-                  </Button>
-                </Link>
-                <Link href="/auth/signup?role=provider">
-                  <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-xl bg-background border-2 hover:bg-muted">
-                    Join as a Provider
-                  </Button>
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link href="/search" className="flex-1">
+                    <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-xl bg-background border-2 hover:bg-muted w-full">
+                      Find Service Providers
+                    </Button>
+                  </Link>
+                  <Link href="/auth/signup?role=provider" className="flex-1">
+                    <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-xl bg-background border-2 hover:bg-muted w-full">
+                      Join as a Provider
+                    </Button>
+                  </Link>
+                </div>
               </div>
 
                {/* For Business Teaser */}
