@@ -42,11 +42,19 @@ export default function Signup() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await signup(values);
-    if (values.role === 'customer') {
-      setLocation('/customer/dashboard');
-    } else {
-      setLocation('/provider/dashboard');
+    try {
+      await signup(values);
+      // Wait briefly for state update, then navigate
+      setTimeout(() => {
+        if (values.role === 'customer') {
+          setLocation('/customer/dashboard');
+        } else {
+          setLocation('/provider/dashboard');
+        }
+      }, 500);
+    } catch (error) {
+      // Error is already handled by the signup function in auth context
+      console.error('Signup error:', error);
     }
   }
 
@@ -97,30 +105,26 @@ export default function Signup() {
                         defaultValue={field.value}
                         className="grid grid-cols-2 gap-4"
                       >
-                        <FormItem>
-                          <FormControl>
-                            <RadioGroupItem value="customer" className="peer sr-only" />
-                          </FormControl>
+                        <div>
+                          <RadioGroupItem value="customer" id="customer-radio" className="peer sr-only" />
                           <Label
-                            htmlFor="customer"
+                            htmlFor="customer-radio"
                             className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
                           >
                             <span className="text-xl mb-2">👤</span>
                             <span className="font-semibold">Book Services</span>
                           </Label>
-                        </FormItem>
-                        <FormItem>
-                          <FormControl>
-                            <RadioGroupItem value="provider" className="peer sr-only" />
-                          </FormControl>
+                        </div>
+                        <div>
+                          <RadioGroupItem value="provider" id="provider-radio" className="peer sr-only" />
                           <Label
-                            htmlFor="provider"
+                            htmlFor="provider-radio"
                             className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
                           >
                             <span className="text-xl mb-2">💼</span>
                             <span className="font-semibold">Offer Services</span>
                           </Label>
-                        </FormItem>
+                        </div>
                       </RadioGroup>
                     </FormControl>
                     <FormMessage />

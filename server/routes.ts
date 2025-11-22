@@ -21,7 +21,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
-      const user = await storage.createUser({
+      const newUser = await storage.createUser({
         email,
         password,
         name,
@@ -29,7 +29,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: role || 'customer',
       });
       
-      res.json({ user: { ...user, password: undefined } });
+      // Return user without password
+      const safeUser = { ...newUser, password: undefined };
+      res.status(201).json({ user: safeUser });
     } catch (error: any) {
       console.error("Signup error:", error);
       res.status(400).json({ message: error.message || "Signup failed" });
