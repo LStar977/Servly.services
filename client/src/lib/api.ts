@@ -124,6 +124,28 @@ export const providerAPI = {
   },
 };
 
+// Admin
+export const adminAPI = {
+  getPlatformSettings: async () => {
+    const res = await fetch(`${API_BASE}/admin/settings`, { credentials: 'include' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch settings');
+    return data.settings;
+  },
+
+  updatePlatformSettings: async (settings: any) => {
+    const res = await fetch(`${API_BASE}/admin/settings`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(settings),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to update settings');
+    return data.settings;
+  },
+};
+
 // Services
 export const serviceAPI = {
   create: async (service: any) => {

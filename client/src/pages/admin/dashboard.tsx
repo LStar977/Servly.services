@@ -1,26 +1,45 @@
-import { Link } from "wouter";
+import { useState, useEffect } from "react";
 import { mockUsers, mockProviders, mockBookings } from "@/lib/data";
+import { adminAPI } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Briefcase, CalendarCheck, ShieldAlert, Settings } from "lucide-react";
+import { Users, Briefcase, CalendarCheck, ShieldAlert, DollarSign, Percent } from "lucide-react";
+import AdminPricing from "./pricing";
+
+interface PlatformSettings {
+  feePercentage: string;
+  basicMonthlyPrice: string;
+  proMonthlyPrice: string;
+  premiumMonthlyPrice: string;
+}
 
 export default function AdminDashboard() {
+  const [settings, setSettings] = useState<PlatformSettings | null>(null);
+  const [loadingSettings, setLoadingSettings] = useState(true);
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const data = await adminAPI.getPlatformSettings();
+      setSettings(data);
+    } catch (error) {
+      console.error("Failed to fetch settings:", error);
+    } finally {
+      setLoadingSettings(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">System overview and management</p>
-        </div>
-        <Link href="/admin/settings">
-          <Button className="gap-2">
-            <Settings className="h-4 w-4" />
-            Settings
-          </Button>
-        </Link>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+        <p className="text-muted-foreground">System overview and management</p>
       </div>
 
       {/* Stats Cards */}
@@ -63,12 +82,63 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      <Tabs defaultValue="users" className="space-y-4">
+      {/* Current Pricing Overview */}
+      {!loadingSettings && settings && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Card className="border-primary/30 bg-primary/5">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Job Fee</CardTitle>
+              <Percent className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{settings.feePercentage}%</div>
+              <p className="text-xs text-muted-foreground mt-1">Per completed job</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Basic Plan</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${settings.basicMonthlyPrice}</div>
+              <p className="text-xs text-muted-foreground mt-1">Per month</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pro Plan</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${settings.proMonthlyPrice}</div>
+              <p className="text-xs text-muted-foreground mt-1">Per month</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Premium Plan</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${settings.premiumMonthlyPrice}</div>
+              <p className="text-xs text-muted-foreground mt-1">Per month</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <Tabs defaultValue="pricing" className="space-y-4">
         <TabsList>
+          <TabsTrigger value="pricing">Pricing & Fees</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="providers">Providers</TabsTrigger>
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="pricing">
+          <AdminPricing />
+        </TabsContent>
         
         <TabsContent value="users">
           <Card>
