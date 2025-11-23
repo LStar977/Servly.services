@@ -75,7 +75,7 @@ export default function Booking() {
   }
 
   const generateTimeSlots = (selectedDate: Date) => {
-    const slots: string[] = [];
+    const slots: Array<{ time: string; isBooked: boolean }> = [];
     const dayName = format(selectedDate, 'EEEE');
     const hours = provider.hoursOfOperation[dayName];
     
@@ -90,16 +90,21 @@ export default function Booking() {
     const endTime = new Date(selectedDate);
     endTime.setHours(closeHour, closeMin, 0);
 
+    // Get appointment interval from provider (default 60 minutes)
+    const intervalMinutes = provider.appointmentIntervalMinutes || 60;
+
     while (current < endTime) {
       const slotTime = format(current, "yyyy-MM-dd'T'HH:mm");
-      slots.push(slotTime);
-      current = addHours(current, 1);
+      const isBooked = bookedSlots.includes(slotTime);
+      slots.push({ time: slotTime, isBooked });
+      current = new Date(current.getTime() + intervalMinutes * 60000);
     }
 
     return slots;
   };
 
-  const timeSlots = date ? generateTimeSlots(date) : [];
+  const availableSlots = date ? generateTimeSlots(date) : [];
+  const timeSlots = availableSlots.map(s => s.time);
   
   const dayName = date ? format(date, 'EEEE') : null;
   const hours = dayName ? provider.hoursOfOperation[dayName] : null;

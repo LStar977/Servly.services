@@ -98,6 +98,7 @@ export const providerProfiles = pgTable("provider_profiles", {
   address: text("address"),
   hoursOfOperation: jsonb("hours_of_operation"),
   availableSlots: jsonb("available_slots"),
+  appointmentIntervalMinutes: integer("appointment_interval_minutes").default(60), // 30, 60, 90, etc
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
