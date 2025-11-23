@@ -3,6 +3,7 @@ import { useLocation, Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { mockProviders } from "@/lib/data";
 import { providerAPI, bookingAPI } from "@/lib/api";
+import type { Booking } from "@/lib/data";
 import type { ProviderProfile } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -62,10 +63,10 @@ export default function Booking() {
     if (!providerId) return;
     const loadBookedSlots = async () => {
       try {
-        const bookings = await bookingAPI.getProviderBookings(providerId);
-        const bookedTimes = bookings
-          .filter(b => ['confirmed', 'accepted', 'completed'].includes(b.status))
-          .map(b => new Date(b.dateTime).toISOString().substring(0, 16));
+        const bookings = await providerAPI.getBookings(providerId);
+        const bookedTimes = (bookings as Booking[])
+          .filter((b: Booking) => ['confirmed', 'accepted', 'completed'].includes(b.status))
+          .map((b: Booking) => new Date(b.dateTime).toISOString().substring(0, 16));
         setBookedSlots(bookedTimes);
       } catch (error) {
         console.error("Failed to load booked slots:", error);
