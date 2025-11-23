@@ -143,16 +143,6 @@ export class DatabaseStorage implements IStorage {
     maxPrice?: number;
     search?: string;
   }): Promise<Array<Service & { provider: ProviderProfile; categoryName?: string }>> {
-    let query = db
-      .select({
-        service: services,
-        provider: providerProfiles,
-        category: categories,
-      })
-      .from(services)
-      .innerJoin(providerProfiles, eq(services.providerId, providerProfiles.userId))
-      .leftJoin(categories, eq(services.categoryId, categories.id));
-
     const conditions = [];
 
     if (filters.category) {
@@ -180,6 +170,16 @@ export class DatabaseStorage implements IStorage {
         )
       );
     }
+
+    let query = db
+      .select({
+        service: services,
+        provider: providerProfiles,
+        category: categories,
+      })
+      .from(services)
+      .innerJoin(providerProfiles, eq(services.providerId, providerProfiles.userId))
+      .leftJoin(categories, eq(services.categoryId, categories.id));
 
     if (conditions.length > 0) {
       query = query.where(and(...conditions));

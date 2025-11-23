@@ -280,9 +280,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/bookings", async (req, res) => {
     try {
-      const data = insertBookingSchema.parse(req.body);
-      const booking = await storage.createBooking(data);
+      const { customerId, providerId, serviceId, categoryId, dateTime, address, notes, totalAmount } = req.body;
+
+      if (!customerId || !providerId || !serviceId || !totalAmount) {
+        res.status(400).json({ message: "Missing required fields" });
+        return;
+      }
+
+      const settings = await storage.getPlatformSettings();
+      const feePercentage = parseFloat(settings.feePercentage.toString()) / 100;
+      const platformFee = parseFloat(totalAmount) * feePercentage;
+      const providerEarnings = parseFloat(totalAmount) - platformFee;
+
+      const bookingData = {
+        customerId,
+        providerId,
+        serviceId,
+        categoryId,
+        dateTime: new Date(dateTime),
+        address,
+        notes: notes || "",
+        status: "confirmed" as const,
+        totalAmount: totalAmount.toString(),
+        platformFee: platformFee.toFixed(2),
+        providerEarnings: providerEarnings.toFixed(2),
+        paymentStatus: "pending" as const,
+        stripePaymentIntentId: null,
+      };
+
+      const booking = await storage.createBooking(bookingData as any);
       res.json({ booking });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Booking failed" });
+    }
+  });
+
+  // Stripe payment intent creation
+  app.post("/api/bookings/:bookingId/payment-intent", async (req, res) => {
+    try {
+      const { bookingId } = req.params;
+      const booking = await storage.getBooking(bookingId);
+      if (!booking) {
+        res.status(404).json({ message: "Booking not found" });
+        return;
+      }
+
+      const stripe = await getStripeClient();
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(parseFloat(booking.totalAmount) * 100),
+        currency: "usd",
+        metadata: {
+          bookingId,
+          customerId: booking.customerId,
+          providerId: booking.providerId,
+        },
+      });
+
+      await storage.updateBookingPaymentStatus(bookingId, "pending", paymentIntent.id);
+      res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Confirm payment
+  app.post("/api/bookings/:bookingId/confirm-payment", async (req, res) => {
+    try {
+      const { bookingId } = req.params;
+      const booking = await storage.getBooking(bookingId);
+      if (!booking) {
+        res.status(404).json({ message: "Booking not found" });
+        return;
+      }
+
+      if (!booking.stripePaymentIntentId) {
+        res.status(400).json({ message: "No payment intent found" });
+        return;
+      }
+
+      const stripe = await getStripeClient();
+      const paymentIntent = await stripe.paymentIntents.retrieve(booking.stripePaymentIntentId);
+
+      if (paymentIntent.status === "succeeded") {
+        await storage.updateBookingPaymentStatus(bookingId, "paid", paymentIntent.id);
+        await storage.createPayment({
+          bookingId,
+          stripePaymentIntentId: paymentIntent.id,
+          customerId: booking.customerId,
+          amount: booking.totalAmount,
+          platformFee: booking.platformFee,
+          providerEarnings: booking.providerEarnings,
+          status: "succeeded",
+        });
+
+        const updatedBooking = await storage.getBooking(bookingId);
+        res.json({ booking: updatedBooking, message: "Payment successful" });
+      } else {
+        res.status(400).json({ message: `Payment ${paymentIntent.status}` });
+      }
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Complete booking and initiate payout
+  app.post("/api/bookings/:bookingId/complete", async (req, res) => {
+    try {
+      const { bookingId } = req.params;
+      const booking = await storage.getBooking(bookingId);
+      if (!booking) {
+        res.status(404).json({ message: "Booking not found" });
+        return;
+      }
+
+      if (booking.paymentStatus !== "paid") {
+        res.status(400).json({ message: "Payment not completed" });
+        return;
+      }
+
+      await storage.updateBookingStatus(bookingId, "completed");
+      
+      const payout = await storage.createPayout({
+        providerId: booking.providerId,
+        bookingId,
+        amount: booking.providerEarnings,
+        status: "pending",
+      });
+
+      res.json({ booking: { ...booking, status: "completed" }, payout });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Get provider payouts
+  app.get("/api/providers/:providerId/payouts", async (req, res) => {
+    try {
+      const payouts = await storage.getPayoutsByProviderId(req.params.providerId);
+      res.json({ payouts });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }
@@ -334,7 +469,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
-      const updatedUser = await storage.updateUser(userId || '', { role: 'admin' });
+      if (!userId) {
+        res.status(401).json({ message: "Failed to determine user ID" });
+        return;
+      }
+      const updatedUser = await storage.updateUser(userId, { role: 'admin' });
       res.json({ user: { ...updatedUser, password: undefined } });
     } catch (error: any) {
       console.error("Claim admin error:", error);
