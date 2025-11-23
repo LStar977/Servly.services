@@ -91,7 +91,7 @@ export default function Booking() {
     endTime.setHours(closeHour, closeMin, 0);
 
     // Get appointment interval from provider (default 60 minutes)
-    const intervalMinutes = provider.appointmentIntervalMinutes || 60;
+    const intervalMinutes = (provider as any).appointmentIntervalMinutes || 60;
 
     while (current < endTime) {
       const slotTime = format(current, "yyyy-MM-dd'T'HH:mm");
@@ -333,11 +333,15 @@ export default function Booking() {
                           </div>
                         </SelectTrigger>
                         <SelectContent className="max-h-60">
-                          {timeSlots.map((slot) => {
-                            const isBooked = bookedSlots.includes(slot);
+                          {availableSlots.map(({ time: slot, isBooked }) => {
                             const slotDisplay = format(new Date(slot), 'h:mm a');
                             return (
-                              <SelectItem key={slot} value={slot} disabled={isBooked}>
+                              <SelectItem 
+                                key={slot} 
+                                value={slot} 
+                                disabled={isBooked}
+                                className={isBooked ? "opacity-50 line-through" : ""}
+                              >
                                 {slotDisplay} {isBooked ? '(Booked)' : ''}
                               </SelectItem>
                             );

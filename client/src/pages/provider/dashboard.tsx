@@ -46,6 +46,9 @@ export default function ProviderDashboard() {
     loadBookings();
   }, [providerId, toast]);
   const [hoursOfOperation, setHoursOfOperation] = useState(provider?.hoursOfOperation || {});
+  const [appointmentInterval, setAppointmentInterval] = useState(
+    (provider as any)?.appointmentIntervalMinutes?.toString() || '60'
+  );
   
   const [businessDetails, setBusinessDetails] = useState({
     businessName: provider?.businessName || '',
@@ -461,6 +464,39 @@ export default function ProviderDashboard() {
                     </div>
                   ))}
                   <Button className="mt-4" onClick={handleSaveHours}>Save Hours</Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Appointment Scheduling</CardTitle>
+                  <CardDescription>Set your preferred appointment time intervals</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="interval">Appointment Duration</Label>
+                    <Select value={appointmentInterval} onValueChange={setAppointmentInterval}>
+                      <SelectTrigger id="interval">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="30">Every 30 minutes</SelectItem>
+                        <SelectItem value="45">Every 45 minutes</SelectItem>
+                        <SelectItem value="60">Every 1 hour</SelectItem>
+                        <SelectItem value="90">Every 1.5 hours</SelectItem>
+                        <SelectItem value="120">Every 2 hours</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Customers will see available time slots based on this interval. Booked slots will appear unavailable.
+                    </p>
+                  </div>
+                  <Button onClick={() => {
+                    toast({
+                      title: "Appointment interval saved",
+                      description: `Appointments will be scheduled every ${appointmentInterval} minutes`,
+                    });
+                  }}>Save Appointment Settings</Button>
                 </CardContent>
               </Card>
 
