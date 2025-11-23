@@ -120,7 +120,12 @@ export const bookings = pgTable("bookings", {
   dateTime: timestamp("date_time").notNull(),
   address: text("address").notNull(),
   notes: text("notes"),
-  status: text("status").notNull().default("pending"), // 'pending', 'accepted', 'declined', 'completed', 'cancelled'
+  status: text("status").notNull().default("confirmed"), // 'confirmed', 'accepted', 'declined', 'completed', 'cancelled'
+  totalAmount: numeric("total_amount", { precision: 10, scale: 2 }).notNull(),
+  platformFee: numeric("platform_fee", { precision: 10, scale: 2 }).notNull().default("0"),
+  providerEarnings: numeric("provider_earnings", { precision: 10, scale: 2 }).notNull().default("0"),
+  paymentStatus: text("payment_status").notNull().default("pending"), // 'pending', 'paid', 'failed', 'refunded'
+  stripePaymentIntentId: varchar("stripe_payment_intent_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -149,3 +154,47 @@ export const insertPlatformSettingsSchema = createInsertSchema(platformSettings)
 
 export type InsertPlatformSettings = z.infer<typeof insertPlatformSettingsSchema>;
 export type PlatformSettings = typeof platformSettings.$inferSelect;
+
+// Payments table - tracks all payment transactions
+export const payments = pgTable("payments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  bookingId: varchar("booking_id").notNull(),
+  stripePaymentIntentId: varchar("stripe_payment_intent_id").notNull().unique(),
+  customerId: varchar("customer_id").notNull(),
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+  platformFee: numeric("platform_fee", { precision: 10, scale: 2 }).notNull(),
+  providerEarnings: numeric("provider_earnings", { precision: 10, scale: 2 }).notNull(),
+  status: text("status").notNull().default("pending"), // 'pending', 'succeeded', 'failed'
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertPaymentSchema = createInsertSchema(payments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type Payment = typeof payments.$inferSelect;
+
+// Payouts table - tracks provider payouts after job completion
+export const payouts = pgTable("payouts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  providerId: varchar("provider_id").notNull(),
+  bookingId: varchar("booking_id").notNull(),
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+  status: text("status").notNull().default("pending"), // 'pending', 'paid', 'failed'
+  stripeTransferId: varchar("stripe_transfer_id"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  paidAt: timestamp("paid_at"),
+});
+
+export const insertPayoutSchema = createInsertSchema(payouts).omit({
+  id: true,
+  createdAt: true,
+  paidAt: true,
+});
+
+export type InsertPayout = z.infer<typeof insertPayoutSchema>;
+export type Payout = typeof payouts.$inferSelect;

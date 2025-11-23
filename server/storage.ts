@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Booking, type InsertBooking, type Service, type InsertService, type ProviderProfile, type InsertProviderProfile, type Category, type InsertCategory, type PlatformSettings, type InsertPlatformSettings, users, bookings, services, providerProfiles, categories, platformSettings } from "@shared/schema";
+import { type User, type InsertUser, type Booking, type InsertBooking, type Service, type InsertService, type ProviderProfile, type InsertProviderProfile, type Category, type InsertCategory, type PlatformSettings, type InsertPlatformSettings, type Payment, type InsertPayment, type Payout, type InsertPayout, users, bookings, services, providerProfiles, categories, platformSettings, payments, payouts } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, like, gte, lte } from "drizzle-orm";
 import { hash, compare } from "bcryptjs";
@@ -40,6 +40,15 @@ export interface IStorage {
   getBookingsByProviderId(providerId: string): Promise<Booking[]>;
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBookingStatus(id: string, status: string): Promise<Booking | undefined>;
+  updateBookingPaymentStatus(id: string, paymentStatus: string, stripePaymentIntentId?: string): Promise<Booking | undefined>;
+
+  // Payments
+  createPayment(payment: InsertPayment): Promise<Payment>;
+  getPaymentByStripeIntentId(stripePaymentIntentId: string): Promise<Payment | undefined>;
+
+  // Payouts
+  createPayout(payout: InsertPayout): Promise<Payout>;
+  getPayoutsByProviderId(providerId: string): Promise<Payout[]>;
 
   // Platform Settings
   getPlatformSettings(): Promise<PlatformSettings>;
@@ -230,6 +239,34 @@ export class DatabaseStorage implements IStorage {
   async updateBookingStatus(id: string, status: string): Promise<Booking | undefined> {
     const result = await db.update(bookings).set({ status }).where(eq(bookings.id, id)).returning();
     return result[0];
+  }
+
+  async updateBookingPaymentStatus(id: string, paymentStatus: string, stripePaymentIntentId?: string): Promise<Booking | undefined> {
+    const updates: any = { paymentStatus };
+    if (stripePaymentIntentId) {
+      updates.stripePaymentIntentId = stripePaymentIntentId;
+    }
+    const result = await db.update(bookings).set(updates).where(eq(bookings.id, id)).returning();
+    return result[0];
+  }
+
+  async createPayment(payment: InsertPayment): Promise<Payment> {
+    const result = await db.insert(payments).values(payment).returning();
+    return result[0];
+  }
+
+  async getPaymentByStripeIntentId(stripePaymentIntentId: string): Promise<Payment | undefined> {
+    const result = await db.select().from(payments).where(eq(payments.stripePaymentIntentId, stripePaymentIntentId));
+    return result[0];
+  }
+
+  async createPayout(payout: InsertPayout): Promise<Payout> {
+    const result = await db.insert(payouts).values(payout).returning();
+    return result[0];
+  }
+
+  async getPayoutsByProviderId(providerId: string): Promise<Payout[]> {
+    return await db.select().from(payouts).where(eq(payouts.providerId, providerId));
   }
 
   async getPlatformSettings(): Promise<PlatformSettings> {
