@@ -14,7 +14,7 @@ import { Menu, X, LayoutDashboard, LogOut, User } from "lucide-react";
 import { useState } from "react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -22,6 +22,25 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   if (isAuthPage) {
     return <main>{children}</main>;
+  }
+
+  // While auth is loading, show a minimal header
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
+          <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+                <span className="text-white font-heading font-bold text-xl leading-none">S</span>
+              </div>
+              <span className="font-heading font-bold text-xl tracking-tight text-foreground">Servly</span>
+            </Link>
+          </div>
+        </header>
+        <main className="flex-1">{children}</main>
+      </div>
+    );
   }
 
   return (
