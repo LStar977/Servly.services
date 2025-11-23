@@ -45,10 +45,10 @@ export default function CustomerDashboard() {
         
         // Load reviews for all providers
         const reviewsByProvider: Record<string, Review[]> = {};
-        const uniqueProviders = [...new Set(bookings.map(b => b.providerId))];
+        const uniqueProviders = Array.from(new Set(bookings.map((b: Booking) => b.providerId))) as string[];
         
         await Promise.all(
-          uniqueProviders.map(async (providerId) => {
+          uniqueProviders.map(async (providerId: string) => {
             try {
               const reviews = await reviewAPI.getByProviderId(providerId);
               reviewsByProvider[providerId] = reviews;
