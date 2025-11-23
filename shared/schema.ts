@@ -257,3 +257,47 @@ export const insertDocumentSchema = createInsertSchema(documents).omit({
 
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type Document = typeof documents.$inferSelect;
+
+// Notification Preferences table - stores user notification settings
+export const notificationPreferences = pgTable("notification_preferences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique(),
+  emailBookings: boolean("email_bookings").notNull().default(true),
+  emailPayments: boolean("email_payments").notNull().default(true),
+  emailMessages: boolean("email_messages").notNull().default(true),
+  smsBookings: boolean("sms_bookings").notNull().default(false),
+  smsPayments: boolean("sms_payments").notNull().default(false),
+  smsMessages: boolean("sms_messages").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertNotificationPreferencesSchema = createInsertSchema(notificationPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertNotificationPreferences = z.infer<typeof insertNotificationPreferencesSchema>;
+export type NotificationPreferences = typeof notificationPreferences.$inferSelect;
+
+// Notifications table - logs all sent notifications
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  type: text("type").notNull(), // 'booking_confirmed', 'booking_completed', 'payment_received', 'message_received'
+  channel: text("channel").notNull(), // 'email', 'sms', 'in_app'
+  subject: text("subject"),
+  message: text("message").notNull(),
+  bookingId: varchar("booking_id"),
+  status: text("status").notNull().default("sent"), // 'pending', 'sent', 'failed'
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type Notification = typeof notifications.$inferSelect;

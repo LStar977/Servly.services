@@ -361,3 +361,31 @@ export const documentAPI = {
     return data.provider;
   },
 };
+
+// Notifications
+export const notificationAPI = {
+  getNotifications: async (userId: string) => {
+    const res = await fetch(`${API_BASE}/users/${userId}/notifications`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch notifications');
+    return data.notifications || [];
+  },
+
+  getPreferences: async (userId: string) => {
+    const res = await fetch(`${API_BASE}/users/${userId}/notification-preferences`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch preferences');
+    return data.preferences || {};
+  },
+
+  updatePreferences: async (userId: string, preferences: any) => {
+    const res = await fetch(`${API_BASE}/users/${userId}/notification-preferences`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(preferences),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to update preferences');
+    return data.preferences;
+  },
+};

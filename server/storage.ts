@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Booking, type InsertBooking, type Service, type InsertService, type ProviderProfile, type InsertProviderProfile, type Category, type InsertCategory, type PlatformSettings, type InsertPlatformSettings, type Payment, type InsertPayment, type Payout, type InsertPayout, type Review, type InsertReview, type Message, type InsertMessage, type Document, type InsertDocument, users, bookings, services, providerProfiles, categories, platformSettings, payments, payouts, reviews, messages, documents } from "@shared/schema";
+import { type User, type InsertUser, type Booking, type InsertBooking, type Service, type InsertService, type ProviderProfile, type InsertProviderProfile, type Category, type InsertCategory, type PlatformSettings, type InsertPlatformSettings, type Payment, type InsertPayment, type Payout, type InsertPayout, type Review, type InsertReview, type Message, type InsertMessage, type Document, type InsertDocument, type Notification, type InsertNotification, type NotificationPreferences, type InsertNotificationPreferences, users, bookings, services, providerProfiles, categories, platformSettings, payments, payouts, reviews, messages, documents, notifications, notificationPreferences } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, like, gte, lte } from "drizzle-orm";
 import { hash, compare } from "bcryptjs";
@@ -70,6 +70,12 @@ export interface IStorage {
   getPendingProviders(): Promise<Array<ProviderProfile & { documentCount: number }>>;
   approveProvider(providerId: string): Promise<ProviderProfile | undefined>;
   rejectProvider(providerId: string): Promise<ProviderProfile | undefined>;
+
+  // Notifications
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  getNotificationsByUserId(userId: string): Promise<Notification[]>;
+  getNotificationPreferences(userId: string): Promise<NotificationPreferences | undefined>;
+  upsertNotificationPreferences(userId: string, prefs: InsertNotificationPreferences): Promise<NotificationPreferences>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -383,6 +389,42 @@ export class DatabaseStorage implements IStorage {
       .where(eq(providerProfiles.id, providerId))
       .returning();
     return result[0];
+  }
+
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const result = await db.insert(notifications).values(notification).returning();
+    return result[0];
+  }
+
+  async getNotificationsByUserId(userId: string): Promise<Notification[]> {
+    return await db.select().from(notifications).where(eq(notifications.userId, userId)).orderBy(notifications.createdAt);
+  }
+
+  async getNotificationPreferences(userId: string): Promise<NotificationPreferences | undefined> {
+    const result = await db.select().from(notificationPreferences).where(eq(notificationPreferences.userId, userId));
+    return result[0];
+  }
+
+  async upsertNotificationPreferences(userId: string, prefs: InsertNotificationPreferences): Promise<NotificationPreferences> {
+    const existing = await this.getNotificationPreferences(userId);
+    if (existing) {
+      const result = await db.update(notificationPreferences)
+        .set({ 
+          emailBookings: prefs.emailBookings,
+          emailPayments: prefs.emailPayments,
+          emailMessages: prefs.emailMessages,
+          smsBookings: prefs.smsBookings,
+          smsPayments: prefs.smsPayments,
+          smsMessages: prefs.smsMessages,
+          updatedAt: new Date() 
+        })
+        .where(eq(notificationPreferences.userId, userId))
+        .returning();
+      return result[0];
+    } else {
+      const result = await db.insert(notificationPreferences).values({ userId, ...prefs }).returning();
+      return result[0];
+    }
   }
 }
 

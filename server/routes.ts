@@ -579,6 +579,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get notifications for user
+  app.get("/api/users/:userId/notifications", async (req, res) => {
+    try {
+      const notifications = await storage.getNotificationsByUserId(req.params.userId);
+      res.json({ notifications });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Get notification preferences
+  app.get("/api/users/:userId/notification-preferences", async (req, res) => {
+    try {
+      const prefs = await storage.getNotificationPreferences(req.params.userId);
+      res.json({ preferences: prefs || {} });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Update notification preferences
+  app.patch("/api/users/:userId/notification-preferences", async (req, res) => {
+    try {
+      const { emailBookings, emailPayments, emailMessages, smsBookings, smsPayments, smsMessages } = req.body;
+      const prefs = await storage.upsertNotificationPreferences(req.params.userId, {
+        emailBookings: emailBookings !== undefined ? emailBookings : true,
+        emailPayments: emailPayments !== undefined ? emailPayments : true,
+        emailMessages: emailMessages !== undefined ? emailMessages : true,
+        smsBookings: smsBookings !== undefined ? smsBookings : false,
+        smsPayments: smsPayments !== undefined ? smsPayments : false,
+        smsMessages: smsMessages !== undefined ? smsMessages : false,
+      } as InsertNotificationPreferences);
+      res.json({ preferences: prefs });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   app.patch("/api/bookings/:id/status", async (req, res) => {
     try {
       const { status } = req.body;
