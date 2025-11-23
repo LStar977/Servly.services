@@ -59,6 +59,7 @@ function Router() {
         <Route path="/provider/dashboard" component={ProviderDashboard} />
         <Route path="/provider/services" component={ProviderServices} />
         <Route path="/admin/dashboard" component={AdminDashboard} />
+        <Route path="/admin/verification" component={AdminVerification} />
         
         <Route component={NotFound} />
       </Switch>
