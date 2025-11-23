@@ -15,8 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, MapPin, Clock, CheckCircle, XCircle, Plus, User, Trash2, TrendingUp, DollarSign, Gift, Star } from "lucide-react";
+import { Calendar, MapPin, Clock, CheckCircle, XCircle, Plus, User, Trash2, TrendingUp, DollarSign, Gift, Star, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { formatDistanceToNow } from "date-fns";
 
 export default function ProviderDashboard() {
   const { user } = useAuth();
@@ -312,7 +313,7 @@ export default function ProviderDashboard() {
       </div>
 
       <Tabs defaultValue="requests" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
+        <TabsList className="grid w-full grid-cols-5 lg:w-[700px]">
           <TabsTrigger value="requests" className="relative">
             Requests
             {pendingBookings.length > 0 && (
@@ -323,6 +324,7 @@ export default function ProviderDashboard() {
           </TabsTrigger>
           <TabsTrigger value="schedule">Schedule</TabsTrigger>
           <TabsTrigger value="earnings">Money Made</TabsTrigger>
+          <TabsTrigger value="reviews">Reviews</TabsTrigger>
           <TabsTrigger value="profile">Profile</TabsTrigger>
         </TabsList>
 
@@ -432,6 +434,88 @@ export default function ProviderDashboard() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="reviews" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div>
+            <div className="mb-6">
+              <h2 className="text-2xl font-semibold mb-2">Customer Reviews</h2>
+              <p className="text-muted-foreground">See what customers are saying about your service</p>
+            </div>
+
+            {reviews.length === 0 ? (
+              <Card className="p-12 text-center border-dashed">
+                <div className="flex justify-center mb-4">
+                  <div className="bg-muted p-4 rounded-full">
+                    <MessageSquare className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold mb-2">No reviews yet</h3>
+                <p className="text-muted-foreground">Complete more bookings to start receiving customer reviews.</p>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 mb-6 p-4 bg-primary/5 rounded-lg border border-primary/10">
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`h-5 w-5 ${
+                            i < Math.floor(parseFloat(analytics.averageRating as any))
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'text-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-lg font-bold">{analytics.averageRating}</span>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Based on {analytics.totalReviews} review{analytics.totalReviews !== 1 ? 's' : ''}
+                  </div>
+                </div>
+
+                {reviews.map((review) => {
+                  const customer = mockProviders[0]; // Placeholder - you'd fetch actual customer data
+                  return (
+                    <Card key={review.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                              {String.fromCharCode(65 + Math.floor(Math.random() * 26))}
+                            </div>
+                            <div>
+                              <div className="font-medium">Customer</div>
+                              <div className="text-sm text-muted-foreground">
+                                {review.createdAt ? formatDistanceToNow(new Date(review.createdAt), { addSuffix: true }) : 'Recently'}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-4 w-4 ${
+                                  i < review.rating
+                                    ? 'fill-yellow-400 text-yellow-400'
+                                    : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        {review.comment && (
+                          <p className="text-sm text-muted-foreground leading-relaxed">{review.comment}</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="profile" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
