@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Booking, type InsertBooking, type Service, type InsertService, type ProviderProfile, type InsertProviderProfile, type Category, type InsertCategory, type PlatformSettings, type InsertPlatformSettings, type Payment, type InsertPayment, type Payout, type InsertPayout, users, bookings, services, providerProfiles, categories, platformSettings, payments, payouts } from "@shared/schema";
+import { type User, type InsertUser, type Booking, type InsertBooking, type Service, type InsertService, type ProviderProfile, type InsertProviderProfile, type Category, type InsertCategory, type PlatformSettings, type InsertPlatformSettings, type Payment, type InsertPayment, type Payout, type InsertPayout, type Review, type InsertReview, users, bookings, services, providerProfiles, categories, platformSettings, payments, payouts, reviews } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, like, gte, lte } from "drizzle-orm";
 import { hash, compare } from "bcryptjs";
@@ -53,6 +53,10 @@ export interface IStorage {
   // Platform Settings
   getPlatformSettings(): Promise<PlatformSettings>;
   updatePlatformSettings(updates: Partial<InsertPlatformSettings>): Promise<PlatformSettings>;
+
+  // Reviews
+  createReview(review: InsertReview): Promise<Review>;
+  getReviewsByProviderId(providerId: string): Promise<Review[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -285,6 +289,15 @@ export class DatabaseStorage implements IStorage {
       .where(eq(platformSettings.id, "main"))
       .returning();
     return result[0];
+  }
+
+  async createReview(review: InsertReview): Promise<Review> {
+    const result = await db.insert(reviews).values(review).returning();
+    return result[0];
+  }
+
+  async getReviewsByProviderId(providerId: string): Promise<Review[]> {
+    return await db.select().from(reviews).where(eq(reviews.providerId, providerId));
   }
 }
 
