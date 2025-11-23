@@ -126,7 +126,7 @@ export default function Booking() {
 
     setIsSubmitting(true);
     try {
-      // First create the booking
+      // Create booking with instant confirmation (no provider approval needed)
       const booking = await bookingAPI.create({
         customerId: user.id,
         providerId: provider.id,
@@ -135,7 +135,7 @@ export default function Booking() {
         dateTime: new Date(selectedSlot).toISOString(),
         address,
         notes,
-        status: 'pending',
+        status: 'confirmed',
       });
 
       // For now, skip actual Stripe payment and show confirmation
