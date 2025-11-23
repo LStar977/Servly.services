@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { mockProviders, categories } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
-import { providerAPI, bookingAPI, serviceAPI } from "@/lib/api";
+import { providerAPI, bookingAPI, serviceAPI, reviewAPI } from "@/lib/api";
 import type { Booking } from "@/lib/data";
+import type { Review } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,24 +27,32 @@ export default function ProviderDashboard() {
   
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [services, setServices] = useState(provider?.services || []);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [payouts, setPayouts] = useState<any[]>([]);
   const [isLoadingBookings, setIsLoadingBookings] = useState(true);
 
   useEffect(() => {
-    const loadBookings = async () => {
+    const loadData = async () => {
       try {
-        const data = await providerAPI.getBookings(providerId);
-        setBookings(data);
+        const [bookingsData, reviewsData, payoutsData] = await Promise.all([
+          providerAPI.getBookings(providerId),
+          reviewAPI.getByProviderId(providerId),
+          providerAPI.getPayouts(providerId),
+        ]);
+        setBookings(bookingsData);
+        setReviews(reviewsData);
+        setPayouts(payoutsData);
       } catch (error) {
-        console.error("Failed to load bookings:", error);
+        console.error("Failed to load data:", error);
         toast({
-          title: "Failed to load bookings",
+          title: "Failed to load dashboard data",
           variant: "destructive",
         });
       } finally {
         setIsLoadingBookings(false);
       }
     };
-    loadBookings();
+    loadData();
   }, [providerId, toast]);
   const [hoursOfOperation, setHoursOfOperation] = useState(provider?.hoursOfOperation || {});
   const [appointmentInterval, setAppointmentInterval] = useState(
@@ -200,18 +209,22 @@ export default function ProviderDashboard() {
     }
   };
 
-  const pendingBookings = bookings.filter(b => b.status === 'pending');
+  const pendingBookings = bookings.filter(b => b.status === 'confirmed' || b.status === 'pending');
   const upcomingBookings = bookings.filter(b => b.status === 'accepted');
   const pastBookings = bookings.filter(b => ['completed', 'cancelled', 'declined'].includes(b.status));
   const completedBookings = bookings.filter(b => b.status === 'completed');
 
-  // Mock analytics data
+  // Calculate real analytics data
+  const totalEarnings = payouts.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+  const completedPayouts = payouts.filter(p => p.status === 'paid');
+  const averageRating = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) : '0.0';
+  
   const analytics = {
-    totalEarnings: 3840,
-    monthlyEarnings: 1200,
-    totalTips: 285,
-    averageRating: 4.8,
-    totalReviews: 124,
+    totalEarnings: totalEarnings.toFixed(2),
+    monthlyEarnings: totalEarnings.toFixed(2),
+    totalTips: 0,
+    averageRating: parseFloat(averageRating as string),
+    totalReviews: reviews.length,
     weeklieClicks: [12, 18, 15, 22, 25, 18, 20],
     completedJobs: completedBookings.length,
   };

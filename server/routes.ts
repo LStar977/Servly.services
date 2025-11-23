@@ -423,6 +423,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create review
+  app.post("/api/reviews", async (req, res) => {
+    try {
+      const { providerId, customerId, bookingId, rating, comment } = req.body;
+      if (!providerId || !customerId || !bookingId || rating === undefined) {
+        res.status(400).json({ message: "Missing required fields" });
+        return;
+      }
+      const review = await storage.createReview({
+        providerId,
+        customerId,
+        bookingId,
+        rating,
+        comment,
+      });
+      res.status(201).json({ review });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Get reviews for provider
+  app.get("/api/providers/:providerId/reviews", async (req, res) => {
+    try {
+      const reviews = await storage.getReviewsByProviderId(req.params.providerId);
+      res.json({ reviews });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   app.patch("/api/bookings/:id/status", async (req, res) => {
     try {
       const { status } = req.body;

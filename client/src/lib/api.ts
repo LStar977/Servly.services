@@ -122,6 +122,13 @@ export const providerAPI = {
     if (!res.ok) throw new Error(data.message || 'Failed to fetch bookings');
     return data.bookings || [];
   },
+
+  getPayouts: async (providerId: string) => {
+    const res = await fetch(`${API_BASE}/providers/${providerId}/payouts`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch payouts');
+    return data.payouts || [];
+  },
 };
 
 // Admin
@@ -242,5 +249,26 @@ export const bookingAPI = {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to fetch payouts');
     return data.payouts || [];
+  },
+};
+
+// Reviews
+export const reviewAPI = {
+  create: async (review: any) => {
+    const res = await fetch(`${API_BASE}/reviews`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(review),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to create review');
+    return data.review;
+  },
+
+  getByProviderId: async (providerId: string) => {
+    const res = await fetch(`${API_BASE}/providers/${providerId}/reviews`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch reviews');
+    return data.reviews || [];
   },
 };
