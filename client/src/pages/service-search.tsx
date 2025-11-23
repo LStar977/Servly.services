@@ -125,6 +125,7 @@ export default function ServiceSearch() {
     setCityInput("");
     setMinPrice("");
     setMaxPrice("");
+    loadServices({});
   };
 
   const handleSelectCity = (city: string) => {
