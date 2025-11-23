@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertBookingSchema, insertServiceSchema, insertProviderProfileSchema } from "@shared/schema";
+import { insertUserSchema, insertBookingSchema, insertServiceSchema, insertProviderProfileSchema, type InsertNotificationPreferences } from "@shared/schema";
 import { compare } from "bcryptjs";
 import Stripe from "stripe";
 

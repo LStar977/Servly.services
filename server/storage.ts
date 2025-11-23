@@ -422,7 +422,15 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return result[0];
     } else {
-      const result = await db.insert(notificationPreferences).values({ userId, ...prefs }).returning();
+      const result = await db.insert(notificationPreferences).values({ 
+        userId,
+        emailBookings: prefs.emailBookings,
+        emailPayments: prefs.emailPayments,
+        emailMessages: prefs.emailMessages,
+        smsBookings: prefs.smsBookings,
+        smsPayments: prefs.smsPayments,
+        smsMessages: prefs.smsMessages,
+      }).returning();
       return result[0];
     }
   }
