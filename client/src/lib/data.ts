@@ -58,7 +58,7 @@ export interface Booking {
   dateTime: string;
   address: string;
   notes: string;
-  status: 'pending' | 'accepted' | 'declined' | 'completed' | 'cancelled';
+  status: 'confirmed' | 'pending' | 'accepted' | 'declined' | 'completed' | 'cancelled';
   createdAt: string;
 }
 
