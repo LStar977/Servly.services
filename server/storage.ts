@@ -171,7 +171,9 @@ export class DatabaseStorage implements IStorage {
       );
     }
 
-    let query = db
+    const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const results = await db
       .select({
         service: services,
         provider: providerProfiles,
@@ -179,13 +181,8 @@ export class DatabaseStorage implements IStorage {
       })
       .from(services)
       .innerJoin(providerProfiles, eq(services.providerId, providerProfiles.userId))
-      .leftJoin(categories, eq(services.categoryId, categories.id));
-
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-
-    const results = await query;
+      .leftJoin(categories, eq(services.categoryId, categories.id))
+      .where(whereCondition);
     
     return results.map(result => ({
       ...result.service,

@@ -305,7 +305,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         platformFee: platformFee.toFixed(2),
         providerEarnings: providerEarnings.toFixed(2),
         paymentStatus: "pending" as const,
-        stripePaymentIntentId: null,
+        stripePaymentIntentId: undefined,
       };
 
       const booking = await storage.createBooking(bookingData as any);
@@ -447,9 +447,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.user && (req.user as any).claims) {
         const oauthUser = req.user as any;
         userEmail = oauthUser.claims.email;
-        const dbUser = await storage.getUserByEmail(userEmail);
-        if (dbUser) {
-          userId = dbUser.id;
+        if (userEmail) {
+          const dbUser = await storage.getUserByEmail(userEmail);
+          if (dbUser) {
+            userId = dbUser.id;
+          }
         }
       }
       // Check if user is authenticated via email/password (check session)
@@ -469,10 +471,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
       
-      if (!userId) {
-        res.status(401).json({ message: "Failed to determine user ID" });
-        return;
-      }
       const updatedUser = await storage.updateUser(userId, { role: 'admin' });
       res.json({ user: { ...updatedUser, password: undefined } });
     } catch (error: any) {
