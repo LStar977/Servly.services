@@ -206,4 +206,41 @@ export const bookingAPI = {
     if (!res.ok) throw new Error(data.message || 'Failed to update booking');
     return data.booking;
   },
+
+  createPaymentIntent: async (bookingId: string) => {
+    const res = await fetch(`${API_BASE}/bookings/${bookingId}/payment-intent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to create payment intent');
+    return data;
+  },
+
+  confirmPayment: async (bookingId: string) => {
+    const res = await fetch(`${API_BASE}/bookings/${bookingId}/confirm-payment`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to confirm payment');
+    return data.booking;
+  },
+
+  completeBooking: async (bookingId: string) => {
+    const res = await fetch(`${API_BASE}/bookings/${bookingId}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to complete booking');
+    return data;
+  },
+
+  getPayouts: async (providerId: string) => {
+    const res = await fetch(`${API_BASE}/providers/${providerId}/payouts`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch payouts');
+    return data.payouts || [];
+  },
 };
