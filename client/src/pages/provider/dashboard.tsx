@@ -141,11 +141,40 @@ export default function ProviderDashboard() {
     }));
   };
 
-  const handleSaveHours = () => {
-    toast({
-      title: "Hours Saved",
-      description: "Your business hours have been updated successfully",
-    });
+  const handleSaveHours = async () => {
+    try {
+      if (!provider) return;
+      await providerAPI.update(provider.id, {
+        hoursOfOperation,
+      });
+      toast({
+        title: "Hours Saved",
+        description: "Your business hours have been updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to save hours",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSaveAppointmentInterval = async () => {
+    try {
+      if (!provider) return;
+      await providerAPI.update(provider.id, {
+        appointmentIntervalMinutes: parseInt(appointmentInterval),
+      });
+      toast({
+        title: "Appointment interval saved",
+        description: `Appointments will be scheduled every ${appointmentInterval} minutes`,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to save appointment interval",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSaveChanges = async () => {
@@ -491,12 +520,7 @@ export default function ProviderDashboard() {
                       Customers will see available time slots based on this interval. Booked slots will appear unavailable.
                     </p>
                   </div>
-                  <Button onClick={() => {
-                    toast({
-                      title: "Appointment interval saved",
-                      description: `Appointments will be scheduled every ${appointmentInterval} minutes`,
-                    });
-                  }}>Save Appointment Settings</Button>
+                  <Button onClick={handleSaveAppointmentInterval}>Save Appointment Settings</Button>
                 </CardContent>
               </Card>
 

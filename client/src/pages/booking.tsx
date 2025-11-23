@@ -55,7 +55,24 @@ export default function Booking() {
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("card");
-  const [bookedSlots, setBookedSlots] = useState<string[]>(['2024-11-25T09:00', '2024-11-25T14:00']);
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+
+  // Load booked appointments for this provider
+  useEffect(() => {
+    if (!providerId) return;
+    const loadBookedSlots = async () => {
+      try {
+        const bookings = await bookingAPI.getProviderBookings(providerId);
+        const bookedTimes = bookings
+          .filter(b => ['confirmed', 'accepted', 'completed'].includes(b.status))
+          .map(b => new Date(b.dateTime).toISOString().substring(0, 16));
+        setBookedSlots(bookedTimes);
+      } catch (error) {
+        console.error("Failed to load booked slots:", error);
+      }
+    };
+    loadBookedSlots();
+  }, [providerId]);
 
   if (providerLoading) {
     return (
