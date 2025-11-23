@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Booking, type InsertBooking, type Service, type InsertService, type ProviderProfile, type InsertProviderProfile, type Category, type InsertCategory, type PlatformSettings, type InsertPlatformSettings, type Payment, type InsertPayment, type Payout, type InsertPayout, type Review, type InsertReview, users, bookings, services, providerProfiles, categories, platformSettings, payments, payouts, reviews } from "@shared/schema";
+import { type User, type InsertUser, type Booking, type InsertBooking, type Service, type InsertService, type ProviderProfile, type InsertProviderProfile, type Category, type InsertCategory, type PlatformSettings, type InsertPlatformSettings, type Payment, type InsertPayment, type Payout, type InsertPayout, type Review, type InsertReview, type Message, type InsertMessage, users, bookings, services, providerProfiles, categories, platformSettings, payments, payouts, reviews, messages } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, like, gte, lte } from "drizzle-orm";
 import { hash, compare } from "bcryptjs";
@@ -57,6 +57,12 @@ export interface IStorage {
   // Reviews
   createReview(review: InsertReview): Promise<Review>;
   getReviewsByProviderId(providerId: string): Promise<Review[]>;
+
+  // Messages
+  sendMessage(message: InsertMessage): Promise<Message>;
+  getConversation(conversationId: string): Promise<Message[]>;
+  getConversations(userId: string): Promise<Array<{ conversationId: string; lastMessage: Message; unreadCount: number }>>;
+  markAsRead(conversationId: string, receiverId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -298,6 +304,40 @@ export class DatabaseStorage implements IStorage {
 
   async getReviewsByProviderId(providerId: string): Promise<Review[]> {
     return await db.select().from(reviews).where(eq(reviews.providerId, providerId));
+  }
+
+  async sendMessage(message: InsertMessage): Promise<Message> {
+    const result = await db.insert(messages).values(message).returning();
+    return result[0];
+  }
+
+  async getConversation(conversationId: string): Promise<Message[]> {
+    return await db.select().from(messages).where(eq(messages.conversationId, conversationId)).orderBy(messages.createdAt);
+  }
+
+  async getConversations(userId: string): Promise<Array<{ conversationId: string; lastMessage: Message; unreadCount: number }>> {
+    const allMessages = await db.select().from(messages).where(
+      or(eq(messages.senderId, userId), eq(messages.receiverId, userId))
+    );
+    
+    const conversationMap = new Map<string, Message[]>();
+    allMessages.forEach(msg => {
+      const msgs = conversationMap.get(msg.conversationId) || [];
+      msgs.push(msg);
+      conversationMap.set(msg.conversationId, msgs);
+    });
+
+    return Array.from(conversationMap.entries()).map(([conversationId, msgs]) => ({
+      conversationId,
+      lastMessage: msgs[msgs.length - 1],
+      unreadCount: msgs.filter(m => m.receiverId === userId && !m.isRead).length,
+    }));
+  }
+
+  async markAsRead(conversationId: string, receiverId: string): Promise<void> {
+    await db.update(messages)
+      .set({ isRead: true })
+      .where(and(eq(messages.conversationId, conversationId), eq(messages.receiverId, receiverId)));
   }
 }
 

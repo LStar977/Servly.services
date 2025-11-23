@@ -454,6 +454,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Send message
+  app.post("/api/messages", async (req, res) => {
+    try {
+      const { conversationId, senderId, receiverId, bookingId, message: messageText } = req.body;
+      if (!conversationId || !senderId || !receiverId || !messageText) {
+        res.status(400).json({ message: "Missing required fields" });
+        return;
+      }
+      const message = await storage.sendMessage({
+        conversationId,
+        senderId,
+        receiverId,
+        bookingId,
+        message: messageText,
+        isRead: false,
+      });
+      res.status(201).json({ message });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Get conversation messages
+  app.get("/api/conversations/:conversationId", async (req, res) => {
+    try {
+      const messages = await storage.getConversation(req.params.conversationId);
+      res.json({ messages });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Get all conversations for a user
+  app.get("/api/users/:userId/conversations", async (req, res) => {
+    try {
+      const conversations = await storage.getConversations(req.params.userId);
+      res.json({ conversations });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Mark conversation as read
+  app.patch("/api/conversations/:conversationId/read", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      if (!userId) {
+        res.status(400).json({ message: "Missing userId" });
+        return;
+      }
+      await storage.markAsRead(req.params.conversationId, userId);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   app.patch("/api/bookings/:id/status", async (req, res) => {
     try {
       const { status } = req.body;

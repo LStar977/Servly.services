@@ -217,3 +217,23 @@ export const insertReviewSchema = createInsertSchema(reviews).omit({
 
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type Review = typeof reviews.$inferSelect;
+
+// Messages table - stores in-app chat messages between customers and providers
+export const messages = pgTable("messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  conversationId: varchar("conversation_id").notNull(), // Format: "customer_id-provider_id" (sorted)
+  senderId: varchar("sender_id").notNull(), // User ID
+  receiverId: varchar("receiver_id").notNull(), // User ID
+  bookingId: varchar("booking_id"), // Optional: related booking
+  message: text("message").notNull(),
+  isRead: boolean("is_read").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertMessageSchema = createInsertSchema(messages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type Message = typeof messages.$inferSelect;

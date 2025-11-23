@@ -21,6 +21,7 @@ import CustomerDashboard from "@/pages/customer/dashboard";
 import ProviderDashboard from "@/pages/provider/dashboard";
 import ProviderServices from "@/pages/provider/services";
 import AdminDashboard from "@/pages/admin/dashboard";
+import Messages from "@/pages/messages";
 import HowItWorks from "@/pages/how-it-works";
 import ForBusiness from "@/pages/for-business";
 import About from "@/pages/about";
@@ -43,6 +44,7 @@ function Router() {
         <Route path="/services" component={ServiceSearch} />
         <Route path="/booking" component={Booking} />
         <Route path="/profile" component={Profile} />
+        <Route path="/messages" component={Messages} />
         
         {/* Informational Pages */}
         <Route path="/how-it-works" component={HowItWorks} />

@@ -272,3 +272,42 @@ export const reviewAPI = {
     return data.reviews || [];
   },
 };
+
+// Messages
+export const messageAPI = {
+  send: async (message: any) => {
+    const res = await fetch(`${API_BASE}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(message),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to send message');
+    return data.message;
+  },
+
+  getConversation: async (conversationId: string) => {
+    const res = await fetch(`${API_BASE}/conversations/${conversationId}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch conversation');
+    return data.messages || [];
+  },
+
+  getUserConversations: async (userId: string) => {
+    const res = await fetch(`${API_BASE}/users/${userId}/conversations`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch conversations');
+    return data.conversations || [];
+  },
+
+  markAsRead: async (conversationId: string, userId: string) => {
+    const res = await fetch(`${API_BASE}/conversations/${conversationId}/read`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to mark as read');
+    return data;
+  },
+};
