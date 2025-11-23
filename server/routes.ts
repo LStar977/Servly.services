@@ -511,6 +511,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Upload provider document
+  app.post("/api/documents", async (req, res) => {
+    try {
+      const { providerId, filename, documentType, fileUrl } = req.body;
+      if (!providerId || !filename || !documentType || !fileUrl) {
+        res.status(400).json({ message: "Missing required fields" });
+        return;
+      }
+      const document = await storage.uploadDocument({
+        providerId,
+        filename,
+        documentType,
+        fileUrl,
+      });
+      res.status(201).json({ document });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Get documents for a provider
+  app.get("/api/providers/:providerId/documents", async (req, res) => {
+    try {
+      const documents = await storage.getDocumentsByProviderId(req.params.providerId);
+      res.json({ documents });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Get pending providers (admin only)
+  app.get("/api/admin/pending-providers", async (req, res) => {
+    try {
+      const providers = await storage.getPendingProviders();
+      res.json({ providers });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Approve provider (admin only)
+  app.patch("/api/admin/providers/:providerId/approve", async (req, res) => {
+    try {
+      const provider = await storage.approveProvider(req.params.providerId);
+      if (!provider) {
+        res.status(404).json({ message: "Provider not found" });
+        return;
+      }
+      res.json({ provider });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Reject provider (admin only)
+  app.patch("/api/admin/providers/:providerId/reject", async (req, res) => {
+    try {
+      const provider = await storage.rejectProvider(req.params.providerId);
+      if (!provider) {
+        res.status(404).json({ message: "Provider not found" });
+        return;
+      }
+      res.json({ provider });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   app.patch("/api/bookings/:id/status", async (req, res) => {
     try {
       const { status } = req.body;

@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Booking, type InsertBooking, type Service, type InsertService, type ProviderProfile, type InsertProviderProfile, type Category, type InsertCategory, type PlatformSettings, type InsertPlatformSettings, type Payment, type InsertPayment, type Payout, type InsertPayout, type Review, type InsertReview, type Message, type InsertMessage, users, bookings, services, providerProfiles, categories, platformSettings, payments, payouts, reviews, messages } from "@shared/schema";
+import { type User, type InsertUser, type Booking, type InsertBooking, type Service, type InsertService, type ProviderProfile, type InsertProviderProfile, type Category, type InsertCategory, type PlatformSettings, type InsertPlatformSettings, type Payment, type InsertPayment, type Payout, type InsertPayout, type Review, type InsertReview, type Message, type InsertMessage, type Document, type InsertDocument, users, bookings, services, providerProfiles, categories, platformSettings, payments, payouts, reviews, messages, documents } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, like, gte, lte } from "drizzle-orm";
 import { hash, compare } from "bcryptjs";
@@ -63,6 +63,13 @@ export interface IStorage {
   getConversation(conversationId: string): Promise<Message[]>;
   getConversations(userId: string): Promise<Array<{ conversationId: string; lastMessage: Message; unreadCount: number }>>;
   markAsRead(conversationId: string, receiverId: string): Promise<void>;
+
+  // Documents & Verification
+  uploadDocument(document: InsertDocument): Promise<Document>;
+  getDocumentsByProviderId(providerId: string): Promise<Document[]>;
+  getPendingProviders(): Promise<Array<ProviderProfile & { documentCount: number }>>;
+  approveProvider(providerId: string): Promise<ProviderProfile | undefined>;
+  rejectProvider(providerId: string): Promise<ProviderProfile | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -338,6 +345,44 @@ export class DatabaseStorage implements IStorage {
     await db.update(messages)
       .set({ isRead: true })
       .where(and(eq(messages.conversationId, conversationId), eq(messages.receiverId, receiverId)));
+  }
+
+  async uploadDocument(document: InsertDocument): Promise<Document> {
+    const result = await db.insert(documents).values(document).returning();
+    return result[0];
+  }
+
+  async getDocumentsByProviderId(providerId: string): Promise<Document[]> {
+    return await db.select().from(documents).where(eq(documents.providerId, providerId));
+  }
+
+  async getPendingProviders(): Promise<Array<ProviderProfile & { documentCount: number }>> {
+    const pending = await db.select().from(providerProfiles).where(eq(providerProfiles.verificationStatus, "pending"));
+    
+    const result = await Promise.all(
+      pending.map(async (provider) => {
+        const docs = await db.select().from(documents).where(eq(documents.providerId, provider.id));
+        return { ...provider, documentCount: docs.length };
+      })
+    );
+    
+    return result;
+  }
+
+  async approveProvider(providerId: string): Promise<ProviderProfile | undefined> {
+    const result = await db.update(providerProfiles)
+      .set({ verificationStatus: "approved" })
+      .where(eq(providerProfiles.id, providerId))
+      .returning();
+    return result[0];
+  }
+
+  async rejectProvider(providerId: string): Promise<ProviderProfile | undefined> {
+    const result = await db.update(providerProfiles)
+      .set({ verificationStatus: "rejected" })
+      .where(eq(providerProfiles.id, providerId))
+      .returning();
+    return result[0];
   }
 }
 

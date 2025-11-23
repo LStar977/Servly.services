@@ -99,6 +99,8 @@ export const providerProfiles = pgTable("provider_profiles", {
   hoursOfOperation: jsonb("hours_of_operation"),
   availableSlots: jsonb("available_slots"),
   appointmentIntervalMinutes: integer("appointment_interval_minutes").default(60), // 30, 60, 90, etc
+  verificationStatus: text("verification_status").notNull().default("pending"), // 'pending', 'approved', 'rejected'
+  verificationEmailSent: boolean("verification_email_sent").default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -237,3 +239,21 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
 
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
+
+// Documents table - stores uploaded provider documents for verification
+export const documents = pgTable("documents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  providerId: varchar("provider_id").notNull(), // Provider profile ID
+  filename: text("filename").notNull(),
+  documentType: text("document_type").notNull(), // 'license', 'insurance', 'id', 'other'
+  fileUrl: text("file_url").notNull(), // Base64 encoded file data
+  uploadedAt: timestamp("uploaded_at").notNull().defaultNow(),
+});
+
+export const insertDocumentSchema = createInsertSchema(documents).omit({
+  id: true,
+  uploadedAt: true,
+});
+
+export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+export type Document = typeof documents.$inferSelect;

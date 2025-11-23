@@ -311,3 +311,53 @@ export const messageAPI = {
     return data;
   },
 };
+
+// Documents & Verification
+export const documentAPI = {
+  upload: async (document: any) => {
+    const res = await fetch(`${API_BASE}/documents`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(document),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to upload document');
+    return data.document;
+  },
+
+  getByProviderId: async (providerId: string) => {
+    const res = await fetch(`${API_BASE}/providers/${providerId}/documents`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch documents');
+    return data.documents || [];
+  },
+
+  getPendingProviders: async () => {
+    const res = await fetch(`${API_BASE}/admin/pending-providers`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch pending providers');
+    return data.providers || [];
+  },
+
+  approveProvider: async (providerId: string) => {
+    const res = await fetch(`${API_BASE}/admin/providers/${providerId}/approve`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to approve provider');
+    return data.provider;
+  },
+
+  rejectProvider: async (providerId: string) => {
+    const res = await fetch(`${API_BASE}/admin/providers/${providerId}/reject`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to reject provider');
+    return data.provider;
+  },
+};

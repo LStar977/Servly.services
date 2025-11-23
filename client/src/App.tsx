@@ -21,6 +21,7 @@ import CustomerDashboard from "@/pages/customer/dashboard";
 import ProviderDashboard from "@/pages/provider/dashboard";
 import ProviderServices from "@/pages/provider/services";
 import AdminDashboard from "@/pages/admin/dashboard";
+import AdminVerification from "@/pages/admin/verification";
 import Messages from "@/pages/messages";
 import HowItWorks from "@/pages/how-it-works";
 import ForBusiness from "@/pages/for-business";
