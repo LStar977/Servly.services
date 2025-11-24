@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, MapPin, Clock, CheckCircle, XCircle, Plus, User, Trash2, TrendingUp, DollarSign, Gift, Star, MessageSquare } from "lucide-react";
+import { Calendar, MapPin, Clock, CheckCircle, XCircle, Plus, User, Trash2, TrendingUp, DollarSign, Gift, Star, MessageSquare, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 
@@ -34,6 +34,8 @@ export default function ProviderDashboard() {
   const [payouts, setPayouts] = useState<any[]>([]);
   const [isLoadingBookings, setIsLoadingBookings] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [providerProfile, setProviderProfile] = useState<any>(null);
+  const [verificationStatus, setVerificationStatus] = useState<string>('pending');
 
   useEffect(() => {
     if (!user) {
@@ -43,14 +45,19 @@ export default function ProviderDashboard() {
     
     const loadData = async () => {
       try {
-        const [bookingsData, reviewsData, payoutsData] = await Promise.all([
+        const [bookingsData, reviewsData, payoutsData, profileData] = await Promise.all([
           providerAPI.getBookings(providerId),
           reviewAPI.getByProviderId(providerId),
           providerAPI.getPayouts(providerId),
+          providerAPI.getById(providerId),
         ]);
         setBookings(bookingsData);
         setReviews(reviewsData);
         setPayouts(payoutsData);
+        if (profileData) {
+          setProviderProfile(profileData);
+          setVerificationStatus(profileData.verificationStatus || 'pending');
+        }
       } catch (error) {
         console.error("Failed to load data:", error);
         toast({
@@ -565,6 +572,19 @@ export default function ProviderDashboard() {
         <TabsContent value="profile" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-6">
+              {verificationStatus === 'pending' && (
+                <Card className="border-yellow-200 bg-yellow-50">
+                  <CardContent className="p-6 flex items-start gap-4">
+                    <AlertCircle className="h-6 w-6 text-yellow-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="font-semibold text-yellow-900 text-lg">Waiting for Approval!</h3>
+                      <p className="text-sm text-yellow-800 mt-1">
+                        Your profile is currently under review by our admin team. Once approved, you'll be able to list your services and start accepting bookings.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
               <Card>
                 <CardHeader>
                   <CardTitle>Business Details</CardTitle>
