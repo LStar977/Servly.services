@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
 import { User } from "./data";
 import { authAPI } from "./api";
 
@@ -16,12 +15,6 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  let toast: ReturnType<typeof useToast> | null = null;
-  try {
-    toast = useToast();
-  } catch (e) {
-    // useToast not available yet, will be used in pages instead
-  }
 
   // Check if user is already logged in via OAuth or session on mount
   useEffect(() => {
@@ -30,6 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const response = await fetch('/api/auth/user', { credentials: 'include' });
         if (response.ok) {
           const data = await response.json();
+          console.log("Auth check successful:", data);
           setUser(data);
         }
       } catch (error) {
@@ -44,22 +38,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
+      console.log("Attempting login with email:", email);
       const loggedInUser = await authAPI.login(email, password);
+      console.log("Login successful:", loggedInUser);
       setUser(loggedInUser);
-      if (toast) {
-        toast({
-          title: "Welcome back!",
-          description: `Logged in as ${loggedInUser.name}`,
-        });
-      }
     } catch (error) {
-      if (toast) {
-        toast({
-          title: "Login failed",
-          description: error instanceof Error ? error.message : "Invalid credentials",
-          variant: "destructive",
-        });
-      }
+      console.error("Login error:", error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -69,22 +53,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = async (userData: { username?: string; email: string; password: string; name: string; role: User['role']; country?: string; province?: string; city?: string }) => {
     setIsLoading(true);
     try {
+      console.log("Attempting signup with email:", userData.email);
       const newUser = await authAPI.signup(userData);
+      console.log("Signup successful:", newUser);
       setUser(newUser);
-      if (toast) {
-        toast({
-          title: "Account created",
-          description: "Welcome to Servly!",
-        });
-      }
     } catch (error) {
-      if (toast) {
-        toast({
-          title: "Signup failed",
-          description: error instanceof Error ? error.message : "Could not create account",
-          variant: "destructive",
-        });
-      }
+      console.error("Signup error:", error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -93,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setUser(null);
+    console.log("Logging out...");
     // Redirect to logout endpoint to clear server session
     window.location.href = '/api/logout';
   };
