@@ -49,11 +49,12 @@ export default function ProviderDashboard() {
     
     const loadData = async () => {
       try {
-        const [bookingsData, reviewsData, payoutsData, profileData] = await Promise.all([
+        const [bookingsData, reviewsData, payoutsData, profileData, docsData] = await Promise.all([
           providerAPI.getBookings(providerId),
           reviewAPI.getByProviderId(providerId),
           providerAPI.getPayouts(providerId),
           providerAPI.getById(providerId),
+          documentAPI.getByProviderId(providerId),
         ]);
         setBookings(bookingsData);
         setReviews(reviewsData);
@@ -62,6 +63,14 @@ export default function ProviderDashboard() {
           setProviderProfile(profileData);
           setVerificationStatus(profileData.verificationStatus || 'pending');
         }
+        
+        // Load documents and sync upload status
+        setDocuments(docsData);
+        const uploadedDocTypes: Record<string, boolean> = {};
+        docsData.forEach((doc: any) => {
+          uploadedDocTypes[doc.documentType] = true;
+        });
+        setUploadedDocs(uploadedDocTypes);
       } catch (error) {
         console.error("Failed to load data:", error);
         toast({
