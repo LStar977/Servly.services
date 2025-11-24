@@ -126,8 +126,8 @@ export async function setupAuth(app: Express) {
       failureRedirect: "/auth/login",
     })(req, res, (err: any) => {
       if (err) return next(err);
-      // After OAuth, redirect to home - the app will handle routing
-      res.redirect('/');
+      // After OAuth, redirect to login page to enter email/password
+      res.redirect('/auth/login');
     });
   });
 
