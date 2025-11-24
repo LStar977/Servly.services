@@ -161,7 +161,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUser(id: string): Promise<void> {
     // Delete related records first to maintain referential integrity
-    await db.delete(sessions).where(eq(sessions.sess, JSON.stringify({ userId: id })));
+    // Note: Sessions are managed by express-session and will naturally expire
     await db.delete(providerProfiles).where(eq(providerProfiles.userId, id));
     await db.delete(bookings).where(or(eq(bookings.customerId, id), eq(bookings.providerId, id)));
     await db.delete(services).where(eq(services.providerId, id));
