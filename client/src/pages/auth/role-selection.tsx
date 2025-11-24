@@ -30,8 +30,8 @@ export default function RoleSelection() {
       if (!response.ok) throw new Error("Failed to update role");
       
       toast({
-        title: "Welcome!",
-        description: role === "provider" ? "Let's set up your business" : "Ready to find services",
+        title: role === "provider" ? "Account created! Welcome to Servly" : "Account created! Welcome to Servly",
+        description: role === "provider" ? "Redirecting to dashboard..." : "Redirecting to dashboard...",
       });
 
       if (role === "provider") {
