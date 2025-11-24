@@ -54,6 +54,9 @@ async function upsertUser(claims: any, role: string = 'customer') {
   const lastName = claims["last_name"] || '';
   const fullName = `${firstName} ${lastName}`.trim();
   
+  // Check if user already exists
+  const existingUser = await storage.getUserByEmail(claims["email"]);
+  
   await storage.upsertUser({
     id: claims["sub"],
     email: claims["email"],
@@ -61,7 +64,7 @@ async function upsertUser(claims: any, role: string = 'customer') {
     firstName: firstName,
     lastName: lastName,
     profileImageUrl: claims["profile_image_url"],
-    role: role,
+    role: existingUser?.role || role, // Keep existing role if user already exists
   });
 }
 
@@ -122,8 +125,8 @@ export async function setupAuth(app: Express) {
       failureRedirect: "/auth/login",
     })(req, res, (err: any) => {
       if (err) return next(err);
-      // After OAuth, redirect to role selection
-      res.redirect('/auth/role-selection');
+      // After OAuth, redirect to home - the app will handle routing
+      res.redirect('/');
     });
   });
 
