@@ -1,0 +1,122 @@
+Provider Requirements
+What You Need to Join Servly
+
+Servly exists to connect customers with trusted, professional, and verified service providers.
+To keep our marketplace safe and high-quality, all providers must meet the following onboarding requirements.
+
+✅ 1. Identity Verification
+
+To prevent fraud and ensure only real professionals join the platform, all providers must complete a secure ID check.
+
+Accepted forms of ID:
+
+Driver’s License
+
+Passport
+
+Provincial/State ID
+
+✅ 2. Business Verification
+
+Servly only accepts legitimate service providers — whether you're a registered business or a licensed sole proprietor.
+
+You'll need to provide:
+
+Business registration number (BN, EIN, or State/Provincial registration)
+
+Legal business name
+
+Business address (must match registration)
+
+Why this matters: It helps us confirm your business is real, compliant, and ready to serve customers.
+
+✅ 3. Licenses or Certifications (Service-Specific)
+
+Some categories require official credentials.
+If applicable, you will need to upload:
+
+Trade license (plumbing, electrical, HVAC, gas fitting, etc.)
+
+Red Seal certification (Canada)
+
+State/Provincial professional license
+
+Cosmetology / esthetician certifications
+
+Locksmith certification
+
+Apprenticeship proof (for regulated trade helpers)
+
+✅ 4. Insurance Requirements
+
+For certain high-risk categories, we require proof of valid insurance.
+
+Needed for categories such as:
+
+Plumbing, electrical, HVAC
+
+Appliance repair
+
+Moving services
+
+Construction / contracting
+
+Wellness services (if required in your region)
+
+Accepted insurance types:
+
+General liability insurance
+
+Workers’ compensation (if you have employees)
+
+✅ 5. Background Check (In-Home Services)
+
+If your service requires entering a customer’s home or handling personal items, a background check is required.
+
+This includes:
+
+Cleaners
+
+Movers
+
+Handypeople
+
+Wellness/beauty providers
+
+Care providers
+
+We may use a third-party service (e.g., Certn, Checkr) or you can upload a recent screening.
+
+✅ 6. Proof of Experience or Work Samples
+
+To help customers trust your business, we require one of the following:
+
+Website or business social media page
+
+Google Business Profile
+
+Portfolio or photos of previous work
+
+Links to reviews from other platforms
+
+This helps us verify the quality and authenticity of your services.
+
+✅ 7. Payment Verification
+
+To receive payouts, you must connect a verified payout account through Stripe Connect, our secure payment partner.
+
+Stripe will ask for:
+
+Legal business name
+
+Bank account details
+
+Identity confirmation
+
+This protects you against fraud and ensures you get paid on time.
+
+⭐ Why We Do This
+
+These requirements ensure Servly remains a safe, trusted, and professional marketplace — for both customers and businesses.
+
+We’re here to help you grow, build your reputation, and connect with customers who value reliability and quality.

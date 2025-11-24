@@ -28,6 +28,7 @@ import ForBusiness from "@/pages/for-business";
 import About from "@/pages/about";
 import Contact from "@/pages/contact";
 import Legal from "@/pages/legal";
+import ProviderRequirements from "@/pages/provider-requirements";
 
 function Router() {
   return (
@@ -50,6 +51,7 @@ function Router() {
         {/* Informational Pages */}
         <Route path="/how-it-works" component={HowItWorks} />
         <Route path="/for-business" component={ForBusiness} />
+        <Route path="/provider-requirements" component={ProviderRequirements} />
         <Route path="/about" component={About} />
         <Route path="/contact" component={Contact} />
         <Route path="/legal" component={Legal} />
