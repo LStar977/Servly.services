@@ -171,9 +171,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/users/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/users/:id", async (req, res) => {
     try {
+      // Check if user is logged in
+      if (!req.user) {
+        res.status(401).json({ message: "Unauthorized" });
+        return;
+      }
+      
       const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id;
+      console.log("[DELETE] Auth user:", userId, "Deleting user:", req.params.id);
+      
       // Only allow users to delete their own account
       if (userId !== req.params.id) {
         res.status(403).json({ message: "You can only delete your own account" });
