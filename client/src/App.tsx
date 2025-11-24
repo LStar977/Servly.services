@@ -1,12 +1,12 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/lib/auth";
 import Layout from "@/components/layout";
 import NotFound from "@/pages/not-found";
+import { Loader2 } from "lucide-react";
 
 // Pages
 import Home from "@/pages/home";
@@ -29,18 +29,30 @@ import About from "@/pages/about";
 import Contact from "@/pages/contact";
 import Legal from "@/pages/legal";
 
-function Router() {
+function Router({ isAuthenticated, isLoading }: { isAuthenticated: boolean; isLoading: boolean }) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <Layout>
       <Switch>
         <Route path="/" component={Home} />
         
-        {/* Auth */}
-        <Route path="/auth/login" component={Login} />
-        <Route path="/auth/signup" component={Signup} />
-        <Route path="/auth/role-selection" component={RoleSelection} />
+        {/* Auth - Only accessible when not authenticated */}
+        {!isAuthenticated && (
+          <>
+            <Route path="/auth/login" component={Login} />
+            <Route path="/auth/signup" component={Signup} />
+          </>
+        )}
         
-        {/* Main Flows */}
+        {/* Always accessible */}
+        <Route path="/auth/role-selection" component={RoleSelection} />
         <Route path="/search" component={Search} />
         <Route path="/services" component={ServiceSearch} />
         <Route path="/booking" component={Booking} />
@@ -54,12 +66,16 @@ function Router() {
         <Route path="/contact" component={Contact} />
         <Route path="/legal" component={Legal} />
         
-        {/* Dashboards */}
-        <Route path="/customer/dashboard" component={CustomerDashboard} />
-        <Route path="/provider/dashboard" component={ProviderDashboard} />
-        <Route path="/provider/services" component={ProviderServices} />
-        <Route path="/admin/dashboard" component={AdminDashboard} />
-        <Route path="/admin/verification" component={AdminVerification} />
+        {/* Dashboards - Only for authenticated users */}
+        {isAuthenticated && (
+          <>
+            <Route path="/customer/dashboard" component={CustomerDashboard} />
+            <Route path="/provider/dashboard" component={ProviderDashboard} />
+            <Route path="/provider/services" component={ProviderServices} />
+            <Route path="/admin/dashboard" component={AdminDashboard} />
+            <Route path="/admin/verification" component={AdminVerification} />
+          </>
+        )}
         
         <Route component={NotFound} />
       </Switch>
@@ -68,15 +84,32 @@ function Router() {
 }
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/auth/user", { credentials: "include" });
+        setIsAuthenticated(response.ok);
+      } catch (error) {
+        console.error("Auth check error:", error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
   return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Router />
-          <Toaster />
-        </TooltipProvider>
-      </QueryClientProvider>
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Router isAuthenticated={isAuthenticated} isLoading={isLoading} />
+        <Toaster />
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 }
 
