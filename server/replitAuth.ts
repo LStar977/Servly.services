@@ -33,7 +33,8 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production', // Only require HTTPS in production
+      sameSite: 'lax', // Allow OAuth callback while protecting against CSRF
       maxAge: sessionTtl,
     },
   });
