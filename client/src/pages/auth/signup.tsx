@@ -62,13 +62,24 @@ export default function Signup() {
         role: 'customer', // Default role, user selects after
       };
       await signup(dataToSubmit as any);
-      // Wait briefly for state update, then navigate to role selection
+      
+      toast({
+        title: "Account created!",
+        description: "Welcome to Servly. Redirecting to home...",
+      });
+      
+      // Wait briefly for state update, then navigate to home page
       setTimeout(() => {
-        setLocation('/auth/role-selection');
-      }, 500);
+        setLocation('/');
+      }, 1000);
     } catch (error) {
-      // Error is already handled by the signup function in auth context
       console.error('Signup error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create account';
+      toast({
+        title: "Signup failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
     }
   }
 
