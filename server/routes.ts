@@ -373,6 +373,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/documents", isAuthenticated, async (req, res) => {
+    try {
+      const providerId = req.query.providerId as string;
+      if (!providerId) {
+        res.status(400).json({ message: "providerId is required" });
+        return;
+      }
+      const documents = await storage.getDocumentsByProviderId(providerId);
+      res.json({ documents });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   app.get("/api/admin/verification/pending", isAuthenticated, async (req, res) => {
     try {
       if ((req.user as any).role !== 'admin') {
