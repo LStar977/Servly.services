@@ -22,8 +22,10 @@ import { formatDistanceToNow } from "date-fns";
 export default function ProviderDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   
-  const providerId = 'p1';
+  // Use current logged-in user's ID as providerId
+  const providerId = user?.id || 'p1';
   const provider = mockProviders.find(p => p.id === providerId);
   
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -31,8 +33,14 @@ export default function ProviderDashboard() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [payouts, setPayouts] = useState<any[]>([]);
   const [isLoadingBookings, setIsLoadingBookings] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
+    if (!user) {
+      setLocation("/auth/login");
+      return;
+    }
+    
     const loadData = async () => {
       try {
         const [bookingsData, reviewsData, payoutsData] = await Promise.all([
@@ -54,7 +62,7 @@ export default function ProviderDashboard() {
       }
     };
     loadData();
-  }, [providerId, toast]);
+  }, [providerId, toast, user, setLocation]);
   const [hoursOfOperation, setHoursOfOperation] = useState(provider?.hoursOfOperation || {});
   const [appointmentInterval, setAppointmentInterval] = useState(
     (provider as any)?.appointmentIntervalMinutes?.toString() || '60'
@@ -149,6 +157,42 @@ export default function ProviderDashboard() {
       ...prev,
       [day]: { ...prev[day], [field]: value }
     }));
+  };
+
+  const handleSaveProfile = async () => {
+    setIsSaving(true);
+    try {
+      // First, create or update provider profile
+      const profileData = {
+        userId: user?.id,
+        businessName: businessDetails.businessName,
+        description: businessDetails.description,
+        phone: businessDetails.phone,
+        city: businessDetails.city,
+        hoursOfOperation,
+        appointmentIntervalMinutes: parseInt(appointmentInterval),
+      };
+      
+      await fetch('/api/providers/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(profileData),
+      }).then(res => res.json());
+      
+      toast({
+        title: "Profile Saved",
+        description: "Your business profile has been updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to save profile",
+        description: error instanceof Error ? error.message : "Could not save profile",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSaveHours = async () => {

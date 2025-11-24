@@ -65,12 +65,12 @@ export default function Signup() {
       
       toast({
         title: "Account created!",
-        description: "Welcome to Servly. Redirecting to home...",
+        description: "Welcome to Servly. Let's set up your account...",
       });
       
-      // Wait briefly for state update, then navigate to home page
+      // Wait briefly for state update, then navigate to role selection
       setTimeout(() => {
-        setLocation('/');
+        setLocation('/auth/role-selection');
       }, 1000);
     } catch (error) {
       console.error('Signup error:', error);
