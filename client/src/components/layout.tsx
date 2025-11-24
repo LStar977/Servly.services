@@ -67,6 +67,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 For Business
               </span>
             </Link>
+            <Link href="/provider-requirements">
+              <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                Become a Provider
+              </span>
+            </Link>
             <Link href="/about">
               <span className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
                 About

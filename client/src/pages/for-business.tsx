@@ -19,11 +19,18 @@ export default function ForBusiness() {
           <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-10">
             Whether you're a solo operator or a growing team, Servly helps you get more customers, automate your workflow, and manage everything in one place.
           </p>
-          <Link href="/auth/signup?role=provider">
-             <Button size="lg" className="h-14 px-8 text-lg rounded-xl bg-white text-slate-900 hover:bg-white/90">
-               Join as a Provider
-             </Button>
-          </Link>
+          <div className="flex gap-4 justify-center">
+            <Link href="/provider-requirements">
+              <Button size="lg" className="h-14 px-8 text-lg rounded-xl" variant="outline">
+                See Requirements
+              </Button>
+            </Link>
+            <Link href="/auth/signup?role=provider">
+              <Button size="lg" className="h-14 px-8 text-lg rounded-xl bg-white text-slate-900 hover:bg-white/90">
+                Join as a Provider
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
