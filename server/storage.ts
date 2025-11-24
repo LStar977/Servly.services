@@ -99,7 +99,17 @@ export class DatabaseStorage implements IStorage {
     if (user.password && typeof user.password === 'string') {
       hashedPassword = await hash(user.password, 10);
     }
-    const username = user.username || user.email?.split('@')[0] || 'user' + Date.now();
+    
+    // Generate unique username - use email prefix + random number to ensure uniqueness
+    let baseUsername = user.username || user.email?.split('@')[0] || 'user';
+    let username = baseUsername;
+    let counter = 1;
+    
+    // Check if username already exists and add suffix if needed
+    while (await this.getUserByUsername(username)) {
+      username = `${baseUsername}${Math.random().toString(36).substring(2, 8)}`;
+    }
+    
     const result = await db.insert(users).values({
       username,
       email: user.email,

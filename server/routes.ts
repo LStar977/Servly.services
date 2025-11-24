@@ -5,6 +5,7 @@ import { isAuthenticated } from "./replitAuth";
 import { insertUserSchema, insertBookingSchema, insertServiceSchema, insertProviderProfileSchema, type InsertNotificationPreferences } from "@shared/schema";
 import { compare } from "bcryptjs";
 import Stripe from "stripe";
+import { sendWelcomeEmail } from "./email";
 
 // Initialize Stripe client
 const getStripeClient = async () => {
@@ -66,6 +67,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         country,
         province,
         city,
+      });
+      
+      // Send welcome email asynchronously (don't wait for it)
+      sendWelcomeEmail(email, name).catch(err => {
+        console.error("Email error:", err);
       });
       
       // Establish session for new user
