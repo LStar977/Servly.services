@@ -3,12 +3,14 @@ import { documentAPI } from "@/lib/api";
 import type { ProviderProfile } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, XCircle, FileText, Clock } from "lucide-react";
+import { CheckCircle2, XCircle, FileText, Clock, ChevronDown, ChevronUp, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function VerificationPage() {
   const [pendingProviders, setPendingProviders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedProviderId, setExpandedProviderId] = useState<string | null>(null);
+  const [providerDocuments, setProviderDocuments] = useState<Record<string, any[]>>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -61,6 +63,46 @@ export default function VerificationPage() {
     }
   };
 
+  const loadProviderDocuments = async (providerId: string) => {
+    try {
+      const docs = await documentAPI.getByProviderId(providerId);
+      setProviderDocuments(prev => ({ ...prev, [providerId]: docs }));
+    } catch (error) {
+      toast({
+        title: "Failed to load documents",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleExpandProvider = (providerId: string) => {
+    if (expandedProviderId === providerId) {
+      setExpandedProviderId(null);
+    } else {
+      setExpandedProviderId(providerId);
+      if (!providerDocuments[providerId]) {
+        loadProviderDocuments(providerId);
+      }
+    }
+  };
+
+  const downloadDocument = (doc: any) => {
+    try {
+      // The fileUrl is already base64 encoded
+      const link = document.createElement('a');
+      link.href = doc.fileUrl;
+      link.download = doc.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      toast({
+        title: "Failed to download document",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       <div className="mb-8">
@@ -87,13 +129,29 @@ export default function VerificationPage() {
             <Card key={provider.id} data-testid={`provider-card-${provider.id}`}>
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
-                  <div>
+                  <div className="flex-1">
                     <CardTitle>{provider.businessName}</CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">{provider.city}</p>
                   </div>
-                  <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
-                    Pending Review
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
+                      Pending Review
+                    </span>
+                    {provider.documentCount > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleExpandProvider(provider.id)}
+                        data-testid={`expand-docs-${provider.id}`}
+                      >
+                        {expandedProviderId === provider.id ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -104,10 +162,34 @@ export default function VerificationPage() {
                   <p className="text-sm"><strong>Documents Submitted:</strong> {provider.documentCount} file{provider.documentCount !== 1 ? "s" : ""}</p>
                 </div>
 
-                {provider.documentCount > 0 && (
-                  <div className="bg-muted p-3 rounded-lg flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-sm">{provider.documentCount} document{provider.documentCount !== 1 ? "s" : ""} uploaded for verification</p>
+                {expandedProviderId === provider.id && provider.documentCount > 0 && (
+                  <div className="mt-4 pt-4 border-t space-y-2">
+                    <h4 className="font-semibold text-sm">Uploaded Documents:</h4>
+                    {providerDocuments[provider.id]?.length ? (
+                      <div className="space-y-2">
+                        {providerDocuments[provider.id].map((doc) => (
+                          <div key={doc.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                            <div className="flex items-center gap-2 flex-1">
+                              <FileText className="h-4 w-4 text-muted-foreground" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{doc.filename}</p>
+                                <p className="text-xs text-muted-foreground capitalize">{doc.documentType}</p>
+                              </div>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => downloadDocument(doc)}
+                              data-testid={`download-doc-${doc.id}`}
+                            >
+                              <Download className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Loading documents...</p>
+                    )}
                   </div>
                 )}
 
