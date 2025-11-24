@@ -22,12 +22,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/auth/me', { credentials: 'include' });
+        const response = await fetch('/api/auth/user', { credentials: 'include' });
         if (response.ok) {
           const data = await response.json();
-          if (data.user) {
-            setUser(data.user);
-          }
+          setUser(data);
         }
       } catch (error) {
         console.error("Failed to check auth status:", error);
@@ -82,10 +80,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setUser(null);
-    toast({
-      title: "Logged out",
-      description: "See you soon!",
-    });
+    // Redirect to logout endpoint to clear server session
+    window.location.href = '/api/logout';
   };
 
   return (
