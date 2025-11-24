@@ -1,4 +1,4 @@
-import { Mail, CheckCircle2, AlertCircle } from "lucide-react";
+import { Mail, CheckCircle2, AlertCircle, Lock, Building2, Wrench, Home, Shield, CreditCard } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -6,52 +6,92 @@ export default function ProviderRequirements() {
   const requirements = [
     {
       number: 1,
+      icon: Lock,
       title: "Identity Verification",
-      description: "To prevent fraud and ensure only real professionals join the platform, all providers must complete a secure ID check.",
-      items: ["Driver's License", "Passport", "Provincial/State ID"],
+      description: "To prevent fraud and ensure real professionals join the platform, all providers must confirm their identity.",
+      mainPoints: {
+        "Required (choose one):": ["Driver's License", "Passport", "Provincial/State ID"],
+      },
+      note: "Only one valid photo ID is needed.",
     },
     {
       number: 2,
-      title: "Business Verification",
-      description: "Servly only accepts legitimate service providers — whether you're a registered business or a licensed sole proprietor.",
-      items: ["Business registration number (BN, EIN, or State/Provincial registration)", "Legal business name", "Business address (must match registration)"],
-      note: "It helps us confirm your business is real, compliant, and ready to serve customers.",
+      icon: Building2,
+      title: "Business or Personal Provider Verification",
+      description: "Whether you're a registered business or a solo provider, we need basic proof that your service is legitimate.",
+      subcategories: {
+        "If you're a registered business:": [
+          "Business registration number (BN, EIN, or state/provincial registration)",
+          "Business name",
+          "Business address"
+        ],
+        "If you're a solo provider (not a registered business):": [
+          "Your legal name",
+          "Proof that you provide the service (portfolio, website, business socials)"
+        ],
+      },
+      note: "This ensures all providers are real and compliant — no fake listings.",
     },
     {
       number: 3,
-      title: "Licenses or Certifications (Service-Specific)",
-      description: "Some categories require official credentials.",
-      items: ["Trade license (plumbing, electrical, HVAC, gas fitting, etc.)", "Red Seal certification (Canada)", "State/Provincial professional license", "Cosmetology / esthetician certifications", "Locksmith certification", "Apprenticeship proof (for regulated trade helpers)"],
+      icon: Wrench,
+      title: "Skills, Licensing, or Proof of Experience",
+      description: "We accept ALL types of professionals, from licensed trades to creative freelancers. Just provide the type of proof that fits your service.",
+      complexLogic: true,
+      sections: [
+        {
+          heading: "If your service requires a license:",
+          subtext: "(e.g., plumbing, electrical, HVAC, gas, locksmithing)",
+          items: ["Trade license", "Red Seal certification (Canada)", "State/Provincial trade license"]
+        },
+        {
+          heading: "If your service does NOT require a license:",
+          subtext: "(e.g., cleaning, beauty, photography, organizing, wellness)",
+          items: ["Portfolio or photos of previous work", "Website or business social page", "Google Business Profile", "Client reviews from any platform"]
+        }
+      ],
+      note: "We only require what makes sense for your category.",
     },
     {
       number: 4,
-      title: "Insurance Requirements",
-      description: "For certain high-risk categories, we require proof of valid insurance.",
-      subcategories: {
-        "Needed for categories such as:": ["Plumbing, electrical, HVAC", "Appliance repair", "Moving services", "Construction / contracting", "Wellness services (if required in your region)"],
-        "Accepted insurance types:": ["General liability insurance", "Workers' compensation (if you have employees)"],
+      icon: Home,
+      title: "Background Check (In-Home Services Only)",
+      description: "If your service requires entering a customer's home or handling personal items, a background check is required—just like Uber, TaskRabbit, and Amazon Home Services.",
+      specialLogic: true,
+      required: {
+        heading: "Required for:",
+        items: ["Cleaners", "Movers", "Handypeople", "In-home beauty/wellness", "Care providers", "Home organizers"]
       },
+      notRequired: {
+        heading: "Not required for:",
+        items: ["Lawn care", "Snow removal", "Car detailing", "Photography", "Beauty done at provider's studio", "Tutors", "Consultants", "Outdoor labor"]
+      },
+      note: "We use a third-party service OR you can upload a recent screening.",
     },
     {
       number: 5,
-      title: "Background Check (In-Home Services)",
-      description: "If your service requires entering a customer's home or handling personal items, a background check is required.",
-      items: ["Cleaners", "Movers", "Handypeople", "Wellness/beauty providers", "Care providers"],
-      note: "We may use a third-party service (e.g., Certn, Checkr) or you can upload a recent screening.",
+      icon: Shield,
+      title: "Insurance (Only for High-Risk Categories)",
+      description: "Not everyone needs insurance. Only certain higher-risk or regulated services must provide proof.",
+      mainPoints: {
+        "Required for categories like:": ["Plumbing", "Electrical", "HVAC", "Appliance repair", "Contracting / construction"],
+        "Accepted:": ["General liability insurance", "Workers' compensation (if you have employees)"]
+      },
+      note: "Most providers do not need insurance unless required by law or risk level.",
     },
     {
       number: 6,
-      title: "Proof of Experience or Work Samples",
-      description: "To help customers trust your business, we require one of the following:",
-      items: ["Website or business social media page", "Google Business Profile", "Portfolio or photos of previous work", "Links to reviews from other platforms"],
-      note: "This helps us verify the quality and authenticity of your services.",
-    },
-    {
-      number: 7,
-      title: "Payment Verification",
-      description: "To receive payouts, you must connect a verified payout account through Stripe Connect, our secure payment partner.",
-      items: ["Legal business name", "Bank account details", "Identity confirmation"],
-      note: "This protects you against fraud and ensures you get paid on time.",
+      icon: CreditCard,
+      title: "Payment Setup",
+      description: "To receive payouts, providers must connect a secure payout account through Stripe Connect.",
+      mainPoints: {
+        "Required:": [
+          "Legal name or business name",
+          "Bank account information",
+          "Identity confirmation (handled by Stripe)"
+        ]
+      },
+      note: "This protects you from fraud and ensures you get paid on time.",
     },
   ];
 
@@ -60,69 +100,122 @@ export default function ProviderRequirements() {
       <div className="container mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">How to Become a Servly Provider</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Servly exists to connect customers with trusted, professional, and verified service providers. Follow these requirements to join our marketplace.
+          <h1 className="text-4xl font-bold mb-4">Become a Servly Provider</h1>
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+            Servly connects customers with trusted, verified, and professional service providers.
+            To keep our marketplace safe and reliable, we follow a simple and fair verification process — similar to Uber and DoorDash — while keeping onboarding fast and easy.
           </p>
         </div>
 
         {/* Requirements List */}
         <div className="grid gap-6 mb-12">
-          {requirements.map((req) => (
-            <Card key={req.number} className="border-l-4 border-l-primary">
-              <CardHeader>
-                <div className="flex items-start gap-4">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white font-bold flex-shrink-0">
-                    {req.number}
+          {requirements.map((req) => {
+            const IconComponent = req.icon;
+            return (
+              <Card key={req.number} className="border-l-4 border-l-primary">
+                <CardHeader>
+                  <div className="flex items-start gap-4">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 text-primary flex-shrink-0">
+                      <IconComponent className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className="text-xl">{req.title}</CardTitle>
+                      <CardDescription className="mt-1">{req.description}</CardDescription>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <CardTitle className="text-xl">{req.title}</CardTitle>
-                    <CardDescription className="mt-1">{req.description}</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {req.items && (
-                  <div>
-                    <p className="font-semibold text-sm mb-2">Required:</p>
-                    <ul className="space-y-1">
-                      {req.items.map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
-                          <span>{item}</span>
-                        </li>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Standard main points */}
+                  {req.mainPoints && (
+                    <div className="space-y-3">
+                      {Object.entries(req.mainPoints).map(([category, items]) => (
+                        <div key={category}>
+                          <p className="font-semibold text-sm mb-2">{category}</p>
+                          <ul className="space-y-1">
+                            {items.map((item: string, idx: number) => (
+                              <li key={idx} className="flex items-start gap-2 text-sm">
+                                <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       ))}
-                    </ul>
-                  </div>
-                )}
+                    </div>
+                  )}
 
-                {req.subcategories && (
-                  <div className="space-y-3">
-                    {Object.entries(req.subcategories).map(([category, items]) => (
-                      <div key={category}>
-                        <p className="font-semibold text-sm mb-2">{category}</p>
+                  {/* Subcategories (for requirement 2) */}
+                  {req.subcategories && (
+                    <div className="space-y-3">
+                      {Object.entries(req.subcategories).map(([category, items]) => (
+                        <div key={category}>
+                          <p className="font-semibold text-sm mb-2">{category}</p>
+                          <ul className="space-y-1">
+                            {items.map((item: string, idx: number) => (
+                              <li key={idx} className="flex items-start gap-2 text-sm">
+                                <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Complex logic sections (for requirement 3) */}
+                  {req.complexLogic && req.sections && (
+                    <div className="space-y-4">
+                      {req.sections.map((section, idx) => (
+                        <div key={idx} className="bg-muted/30 rounded-lg p-4">
+                          <p className="font-semibold text-sm mb-1">{section.heading}</p>
+                          <p className="text-xs text-muted-foreground mb-2">{section.subtext}</p>
+                          <p className="text-xs text-muted-foreground mb-2">Provide one of:</p>
+                          <ul className="space-y-1">
+                            {section.items.map((item: string, idx: number) => (
+                              <li key={idx} className="flex items-start gap-2 text-sm">
+                                <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Special logic for requirement 4 */}
+                  {req.specialLogic && req.required && req.notRequired && (
+                    <div className="space-y-4">
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <p className="font-semibold text-sm text-green-900 mb-2">✔ {req.required.heading}</p>
                         <ul className="space-y-1">
-                          {items.map((item: string, idx: number) => (
-                            <li key={idx} className="flex items-start gap-2 text-sm">
-                              <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
-                              <span>{item}</span>
-                            </li>
+                          {req.required.items.map((item: string, idx: number) => (
+                            <li key={idx} className="text-sm text-green-800">✔ {item}</li>
                           ))}
                         </ul>
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                        <p className="font-semibold text-sm text-slate-900 mb-2">– {req.notRequired.heading}</p>
+                        <ul className="space-y-1">
+                          {req.notRequired.items.map((item: string, idx: number) => (
+                            <li key={idx} className="text-sm text-slate-700">– {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
 
-                {req.note && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-3">
-                    <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-blue-900">{req.note}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+                  {req.note && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-3">
+                      <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-blue-900">{req.note}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Submission Instructions */}
@@ -130,34 +223,34 @@ export default function ProviderRequirements() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl">
               <Mail className="h-6 w-6 text-primary" />
-              Submit Your Information
+              Submit Your Application
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-lg font-semibold mb-2">Ready to apply?</p>
+              <p className="text-lg font-semibold mb-2">Ready to join?</p>
               <p className="text-muted-foreground mb-4">
-                Please compile all the required documents and information listed above, and send them to:
+                Please send all required documents to:
               </p>
               <div className="bg-white border-2 border-primary rounded-lg p-4 inline-block">
-                <p className="text-xl font-bold text-primary">sservly@gmail.com</p>
+                <p className="text-xl font-bold text-primary">📩 sservly@gmail.com</p>
               </div>
             </div>
 
             <div className="space-y-3">
-              <p className="font-semibold">In your email, please include:</p>
+              <p className="font-semibold">Include:</p>
               <ul className="space-y-2">
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                  <span>Your full name and contact information</span>
+                  <span>Your full name + contact info</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                  <span>The service category/categories you want to provide</span>
+                  <span>The service(s) you want to provide</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                  <span>All required documentation (as attachments or links)</span>
+                  <span>All required verification (ID, proof of work, license if applicable)</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
@@ -168,7 +261,7 @@ export default function ProviderRequirements() {
 
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <p className="text-sm text-yellow-900">
-                <strong>⏱️ Processing Time:</strong> Our admin team reviews applications within 3-5 business days. Once approved, you can start listing your services and accepting bookings immediately!
+                <strong>⏱️ Processing Time:</strong> Our team reviews applications within 3-5 business days. Once approved, you can start listing your services and accepting bookings immediately!
               </p>
             </div>
           </CardContent>
@@ -183,10 +276,11 @@ export default function ProviderRequirements() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground mb-4">
-              These requirements ensure Servly remains a safe, trusted, and professional marketplace — for both customers and businesses.
+              These requirements help Servly stay a trusted, safe, and professional marketplace.
+              They protect customers, support real providers, and make sure everyone on the platform is legitimate.
             </p>
             <p className="text-muted-foreground">
-              We're here to help you grow, build your reputation, and connect with customers who value reliability and quality.
+              We're here to help you grow, build your reputation, and reach more customers who value reliability and quality.
             </p>
           </CardContent>
         </Card>
