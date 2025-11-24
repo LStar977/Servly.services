@@ -164,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Providers
   app.get("/api/providers", async (req, res) => {
     try {
-      const providers = await storage.getProviders();
+      const providers = await storage.getAllProviders();
       res.json({ providers });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -183,7 +183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/providers/profile", isAuthenticated, async (req, res) => {
     try {
       const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id;
-      const profile = await storage.createOrUpdateProviderProfile({
+      const profile = await storage.createProviderProfile({
         providerId: userId,
         ...req.body,
       });
@@ -210,7 +210,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/services", async (req, res) => {
     try {
-      const services = await storage.getServices();
+      const { providerId } = req.query;
+      const services = providerId 
+        ? await storage.getServicesByProviderId(providerId as string)
+        : [];
       res.json({ services });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -235,7 +238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/bookings", isAuthenticated, async (req, res) => {
     try {
       const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id;
-      const bookings = await storage.getBookingsByUser(userId);
+      const bookings = await storage.getBookingsByCustomerId(userId);
       res.json({ bookings });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -244,7 +247,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/bookings/:id", isAuthenticated, async (req, res) => {
     try {
-      const booking = await storage.updateBooking(req.params.id, req.body);
+      const { status, paymentStatus } = req.body;
+      let booking;
+      if (paymentStatus) {
+        booking = await storage.updateBookingPaymentStatus(req.params.id, paymentStatus);
+      } else {
+        booking = await storage.updateBookingStatus(req.params.id, status);
+      }
       res.json({ booking });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -267,7 +276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/reviews/:providerId", async (req, res) => {
     try {
-      const reviews = await storage.getReviewsByProvider(req.params.providerId);
+      const reviews = await storage.getReviewsByProviderId(req.params.providerId);
       res.json({ reviews });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -278,7 +287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/messages", isAuthenticated, async (req, res) => {
     try {
       const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id;
-      const message = await storage.createMessage({
+      const message = await storage.sendMessage({
         ...req.body,
         senderId: userId,
       });
@@ -290,7 +299,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/messages/:conversationId", isAuthenticated, async (req, res) => {
     try {
-      const messages = await storage.getConversationMessages(req.params.conversationId);
+      const messages = await storage.getConversation(req.params.conversationId);
       res.json({ messages });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -317,7 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(403).json({ message: "Admin access required" });
         return;
       }
-      const providers = await storage.getPendingVerifications();
+      const providers = await storage.getPendingProviders();
       res.json({ providers });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -343,7 +352,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(403).json({ message: "Admin access required" });
         return;
       }
-      const provider = await storage.rejectProvider(req.params.providerId, req.body.reason);
+      const provider = await storage.rejectProvider(req.params.providerId);
       res.json({ provider });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -364,7 +373,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/notifications/preferences", isAuthenticated, async (req, res) => {
     try {
       const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id;
-      const preferences = await storage.updateNotificationPreferences(userId, req.body as InsertNotificationPreferences);
+      const preferences = await storage.upsertNotificationPreferences(userId, req.body as InsertNotificationPreferences);
       res.json({ preferences });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -374,7 +383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/notifications", isAuthenticated, async (req, res) => {
     try {
       const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id;
-      const notifications = await storage.getNotifications(userId);
+      const notifications = await storage.getNotificationsByUserId(userId);
       res.json({ notifications });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -402,7 +411,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/payments/confirm", isAuthenticated, async (req, res) => {
     try {
       const { bookingId } = req.body;
-      const booking = await storage.updateBooking(bookingId, { paymentStatus: 'completed' });
+      const booking = await storage.updateBookingPaymentStatus(bookingId, 'completed');
       res.json({ booking });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
