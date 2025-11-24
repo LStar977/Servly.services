@@ -38,6 +38,8 @@ export default function ProviderDashboard() {
   const [verificationStatus, setVerificationStatus] = useState<string>('pending');
   const [documents, setDocuments] = useState<any[]>([]);
   const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+  const [uploadedDocs, setUploadedDocs] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!user) {
@@ -163,29 +165,80 @@ export default function ProviderDashboard() {
 
   const handleDocumentUpload = async (docType: string, file: File) => {
     setUploadingDoc(true);
+    setUploadProgress(prev => ({ ...prev, [docType]: 0 }));
+    
     try {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+      if (!validTypes.includes(file.type)) {
+        throw new Error('Please upload an image (JPG, PNG, GIF) or PDF file');
+      }
+
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          const current = prev[docType] || 0;
+          return { ...prev, [docType]: Math.min(current + Math.random() * 30, 90) };
+        });
+      }, 300);
+
       const reader = new FileReader();
       reader.onload = async (e) => {
-        const base64 = e.target?.result as string;
-        await documentAPI.upload({
-          filename: file.name,
-          documentType: docType,
-          fileUrl: base64,
-        });
-        toast({
-          title: "Document uploaded",
-          description: "Your document has been submitted for review",
-        });
-        // Reload documents
-        const docs = await documentAPI.getByProviderId(providerId);
-        setDocuments(docs);
+        try {
+          const base64 = e.target?.result as string;
+          
+          // Upload document
+          await documentAPI.upload({
+            filename: file.name,
+            documentType: docType,
+            fileUrl: base64,
+          });
+
+          // Simulate final progress
+          clearInterval(progressInterval);
+          setUploadProgress(prev => ({ ...prev, [docType]: 100 }));
+          setUploadedDocs(prev => ({ ...prev, [docType]: true }));
+
+          toast({
+            title: "Document uploaded successfully",
+            description: `${file.name} has been saved and submitted for review`,
+          });
+
+          // Reload documents after 500ms to show completion
+          setTimeout(async () => {
+            const docs = await documentAPI.getByProviderId(providerId);
+            setDocuments(docs);
+            setUploadProgress(prev => {
+              const newProgress = { ...prev };
+              delete newProgress[docType];
+              return newProgress;
+            });
+          }, 500);
+        } catch (error) {
+          clearInterval(progressInterval);
+          toast({
+            title: "Upload failed",
+            description: error instanceof Error ? error.message : "Could not upload document",
+            variant: "destructive",
+          });
+          setUploadProgress(prev => {
+            const newProgress = { ...prev };
+            delete newProgress[docType];
+            return newProgress;
+          });
+        }
       };
       reader.readAsDataURL(file);
     } catch (error) {
       toast({
-        title: "Upload failed",
-        description: error instanceof Error ? error.message : "Could not upload document",
+        title: "Invalid file",
+        description: error instanceof Error ? error.message : "Please select a valid file",
         variant: "destructive",
+      });
+      setUploadProgress(prev => {
+        const newProgress = { ...prev };
+        delete newProgress[docType];
+        return newProgress;
       });
     } finally {
       setUploadingDoc(false);
@@ -815,39 +868,76 @@ export default function ProviderDashboard() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3">
-                  {['id', 'business', 'license', 'insurance', 'background', 'portfolio'].map((docType) => (
-                    <div key={docType} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
-                      <div className="flex-1">
-                        <h4 className="font-semibold capitalize">{docType === 'id' ? 'Identity (ID)' : docType === 'business' ? 'Business Registration' : docType === 'background' ? 'Background Check' : docType === 'portfolio' ? 'Portfolio / Proof of Work' : docType}</h4>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {docType === 'id' && 'Driver\'s License, Passport, or Provincial ID'}
-                          {docType === 'business' && 'Business registration number or documents'}
-                          {docType === 'license' && 'Trade license or professional certification'}
-                          {docType === 'insurance' && 'Insurance certificate or proof'}
-                          {docType === 'background' && 'Background check results'}
-                          {docType === 'portfolio' && 'Photos, website link, or previous work samples'}
-                        </p>
+                  {['id', 'business', 'license', 'insurance', 'background', 'portfolio'].map((docType) => {
+                    const isUploading = uploadProgress[docType] !== undefined;
+                    const uploadComplete = uploadedDocs[docType];
+                    const progress = uploadProgress[docType] || 0;
+
+                    return (
+                      <div key={docType} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
+                        <div className="flex-1">
+                          <h4 className="font-semibold capitalize flex items-center gap-2">
+                            {docType === 'id' ? 'Identity (ID)' : docType === 'business' ? 'Business Registration' : docType === 'background' ? 'Background Check' : docType === 'portfolio' ? 'Portfolio / Proof of Work' : docType}
+                            {uploadComplete && <CheckCircle className="h-5 w-5 text-green-600" />}
+                          </h4>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {docType === 'id' && 'Driver\'s License, Passport, or Provincial ID'}
+                            {docType === 'business' && 'Business registration number or documents'}
+                            {docType === 'license' && 'Trade license or professional certification'}
+                            {docType === 'insurance' && 'Insurance certificate or proof'}
+                            {docType === 'background' && 'Background check results'}
+                            {docType === 'portfolio' && 'Photos, website link, or previous work samples'}
+                          </p>
+                          
+                          {isUploading && (
+                            <div className="mt-3 space-y-1">
+                              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div
+                                  className="bg-primary h-full transition-all duration-300"
+                                  style={{ width: `${progress}%` }}
+                                />
+                              </div>
+                              <p className="text-xs text-muted-foreground">{Math.round(progress)}% uploaded</p>
+                            </div>
+                          )}
+                        </div>
+                        <input
+                          type="file"
+                          id={`doc-${docType}`}
+                          className="hidden"
+                          accept="image/jpeg,image/png,image/gif,application/pdf"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleDocumentUpload(docType, file);
+                          }}
+                        />
+                        <Button
+                          size="sm"
+                          variant={uploadComplete ? 'outline' : 'outline'}
+                          onClick={() => document.getElementById(`doc-${docType}`)?.click()}
+                          disabled={isUploading || verificationStatus === 'approved' || uploadComplete}
+                          className={uploadComplete ? 'bg-green-50 border-green-300' : ''}
+                        >
+                          {uploadComplete ? (
+                            <>
+                              <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                              Uploaded
+                            </>
+                          ) : isUploading ? (
+                            <>
+                              <div className="h-4 w-4 mr-2 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <FileUp className="h-4 w-4 mr-2" />
+                              Upload
+                            </>
+                          )}
+                        </Button>
                       </div>
-                      <input
-                        type="file"
-                        id={`doc-${docType}`}
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleDocumentUpload(docType, file);
-                        }}
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => document.getElementById(`doc-${docType}`)?.click()}
-                        disabled={uploadingDoc || verificationStatus === 'approved'}
-                      >
-                        <FileUp className="h-4 w-4 mr-2" />
-                        Upload
-                      </Button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {documents.length > 0 && (
