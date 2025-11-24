@@ -160,20 +160,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(id: string): Promise<void> {
-    // Delete related records first to maintain referential integrity
-    // Note: Sessions are managed by express-session and will naturally expire
-    await db.delete(providerProfiles).where(eq(providerProfiles.userId, id));
-    await db.delete(bookings).where(or(eq(bookings.customerId, id), eq(bookings.providerId, id)));
-    await db.delete(services).where(eq(services.providerId, id));
-    await db.delete(reviews).where(or(eq(reviews.providerId, id), eq(reviews.customerId, id)));
-    await db.delete(messages).where(or(eq(messages.senderId, id), eq(messages.receiverId, id)));
-    await db.delete(documents).where(eq(documents.providerId, id));
-    await db.delete(notifications).where(eq(notifications.userId, id));
-    await db.delete(notificationPreferences).where(eq(notificationPreferences.userId, id));
-    await db.delete(payments).where(eq(payments.userId, id));
-    await db.delete(payouts).where(eq(payouts.providerId, id));
-    // Finally, delete the user
-    await db.delete(users).where(eq(users.id, id));
+    try {
+      // Delete provider profile if exists
+      try {
+        await db.delete(providerProfiles).where(eq(providerProfiles.userId, id));
+      } catch (e) {
+        console.log("No provider profile to delete");
+      }
+      
+      // Finally, delete the user (this will cascade delete other related records)
+      await db.delete(users).where(eq(users.id, id));
+      console.log("User deleted successfully");
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      throw error;
+    }
   }
 
   async getCategories(): Promise<Category[]> {

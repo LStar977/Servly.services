@@ -235,23 +235,25 @@ export default function Profile() {
         credentials: 'include',
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.message || 'Failed to delete account');
       }
       
       setShowDeleteDialog(false);
       toast({
-        title: "Account Deleted",
-        description: "Your account has been permanently deleted from the database. Redirecting...",
-        variant: "destructive",
+        title: "Success",
+        description: "Your account has successfully been deleted",
+        variant: "default",
       });
       
       setTimeout(() => {
         logout();
         setLocation('/');
-      }, 2000);
+      }, 1500);
     } catch (error) {
+      console.error("Delete error:", error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to delete account",
