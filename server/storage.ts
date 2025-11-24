@@ -112,7 +112,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: any): Promise<User> {
-    const [user] = await db
+    // First check if user with this email already exists
+    if (userData.email) {
+      const existingUser = await this.getUserByEmail(userData.email);
+      if (existingUser) {
+        // Update existing user
+        return await this.updateUser(existingUser.id, {
+          firstName: userData.firstName || existingUser.firstName,
+          lastName: userData.lastName || existingUser.lastName,
+          profileImageUrl: userData.profileImageUrl || existingUser.profileImageUrl,
+          name: userData.name || existingUser.name,
+        }) || existingUser;
+      }
+    }
+
+    // Create new user if doesn't exist
+    const result = await db
       .insert(users)
       .values({
         id: userData.id,
@@ -120,21 +135,12 @@ export class DatabaseStorage implements IStorage {
         firstName: userData.firstName,
         lastName: userData.lastName,
         profileImageUrl: userData.profileImageUrl,
+        name: userData.name || '',
         role: userData.role || 'customer',
         updatedAt: new Date(),
       })
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          email: userData.email,
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          profileImageUrl: userData.profileImageUrl,
-          updatedAt: new Date(),
-        },
-      })
       .returning();
-    return user;
+    return result[0];
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
