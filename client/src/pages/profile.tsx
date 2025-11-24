@@ -226,17 +226,38 @@ export default function Profile() {
     });
   };
 
-  const handleDeleteAccount = () => {
-    setShowDeleteDialog(false);
-    toast({
-      title: "Account Deleted",
-      description: "Your account has been permanently deleted. Redirecting...",
-      variant: "destructive",
-    });
-    setTimeout(() => {
-      logout();
-      setLocation('/');
-    }, 2000);
+  const handleDeleteAccount = async () => {
+    try {
+      if (!user) return;
+      
+      const response = await fetch(`/api/users/${user.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Failed to delete account');
+      }
+      
+      setShowDeleteDialog(false);
+      toast({
+        title: "Account Deleted",
+        description: "Your account has been permanently deleted from the database. Redirecting...",
+        variant: "destructive",
+      });
+      
+      setTimeout(() => {
+        logout();
+        setLocation('/');
+      }, 2000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete account",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleClaimAdmin = async () => {

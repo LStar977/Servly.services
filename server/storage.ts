@@ -11,6 +11,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   upsertUser(user: any): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
+  deleteUser(id: string): Promise<void>;
 
   // Categories
   getCategories(): Promise<Category[]>;
@@ -156,6 +157,23 @@ export class DatabaseStorage implements IStorage {
   async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
     const result = await db.update(users).set({ ...updates, updatedAt: new Date() }).where(eq(users.id, id)).returning();
     return result[0];
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    // Delete related records first to maintain referential integrity
+    await db.delete(sessions).where(eq(sessions.sess, JSON.stringify({ userId: id })));
+    await db.delete(providerProfiles).where(eq(providerProfiles.userId, id));
+    await db.delete(bookings).where(or(eq(bookings.customerId, id), eq(bookings.providerId, id)));
+    await db.delete(services).where(eq(services.providerId, id));
+    await db.delete(reviews).where(or(eq(reviews.providerId, id), eq(reviews.customerId, id)));
+    await db.delete(messages).where(or(eq(messages.senderId, id), eq(messages.receiverId, id)));
+    await db.delete(documents).where(eq(documents.providerId, id));
+    await db.delete(notifications).where(eq(notifications.userId, id));
+    await db.delete(notificationPreferences).where(eq(notificationPreferences.userId, id));
+    await db.delete(payments).where(eq(payments.userId, id));
+    await db.delete(payouts).where(eq(payouts.providerId, id));
+    // Finally, delete the user
+    await db.delete(users).where(eq(users.id, id));
   }
 
   async getCategories(): Promise<Category[]> {

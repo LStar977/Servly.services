@@ -171,6 +171,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/users/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any)?.claims?.sub || (req.user as any)?.id;
+      // Only allow users to delete their own account
+      if (userId !== req.params.id) {
+        res.status(403).json({ message: "You can only delete your own account" });
+        return;
+      }
+      
+      console.log("[DELETE] Deleting user account:", userId);
+      await storage.deleteUser(req.params.id);
+      
+      // Log out the user by clearing the session
+      req.logout((err) => {
+        if (err) {
+          console.error("[DELETE] Logout error:", err);
+        }
+        res.status(200).json({ message: "Account deleted successfully" });
+      });
+    } catch (error: any) {
+      console.error("[DELETE] Account deletion error:", error);
+      res.status(400).json({ message: error.message || "Failed to delete account" });
+    }
+  });
+
   // Categories
   app.get("/api/categories", async (req, res) => {
     try {
