@@ -288,7 +288,7 @@ export default function ProviderRequirements() {
         {/* CTA Buttons */}
         <div className="flex justify-center gap-4 mt-12">
           <Button size="lg" onClick={() => window.location.href = "/auth/signup"}>
-            Start Your Application
+            Create your Account
           </Button>
           <Button size="lg" variant="outline" onClick={() => window.location.href = "/"}>
             Back to Home
