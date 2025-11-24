@@ -622,7 +622,13 @@ export default function ProviderDashboard() {
                       />
                     </div>
                   </div>
-                  <Button onClick={handleSaveChanges}>Save Changes</Button>
+                  <Button 
+                    onClick={handleSaveChanges}
+                    disabled={verificationStatus === 'pending' || isSaving}
+                    title={verificationStatus === 'pending' ? 'Your profile must be approved by admin before submitting' : ''}
+                  >
+                    {verificationStatus === 'pending' ? 'Pending Admin Approval' : 'Save Changes'}
+                  </Button>
                 </CardContent>
               </Card>
 
@@ -653,7 +659,14 @@ export default function ProviderDashboard() {
                       <Switch defaultChecked={!hoursOfOperation[day]?.closed} />
                     </div>
                   ))}
-                  <Button className="mt-4" onClick={handleSaveHours}>Save Hours</Button>
+                  <Button 
+                    className="mt-4" 
+                    onClick={handleSaveHours}
+                    disabled={verificationStatus === 'pending'}
+                    title={verificationStatus === 'pending' ? 'Your profile must be approved by admin before submitting' : ''}
+                  >
+                    {verificationStatus === 'pending' ? 'Pending Admin Approval' : 'Save Hours'}
+                  </Button>
                 </CardContent>
               </Card>
 
@@ -681,7 +694,13 @@ export default function ProviderDashboard() {
                       Customers will see available time slots based on this interval. Booked slots will appear unavailable.
                     </p>
                   </div>
-                  <Button onClick={handleSaveAppointmentInterval}>Save Appointment Settings</Button>
+                  <Button 
+                    onClick={handleSaveAppointmentInterval}
+                    disabled={verificationStatus === 'pending'}
+                    title={verificationStatus === 'pending' ? 'Your profile must be approved by admin before submitting' : ''}
+                  >
+                    {verificationStatus === 'pending' ? 'Pending Admin Approval' : 'Save Appointment Settings'}
+                  </Button>
                 </CardContent>
               </Card>
 
@@ -691,8 +710,14 @@ export default function ProviderDashboard() {
                     <CardTitle>Services</CardTitle>
                     <CardDescription>Services you offer to customers</CardDescription>
                   </div>
-                  <Button size="sm" variant="outline" onClick={() => setShowAddService(true)}>
-                    <Plus className="h-4 w-4 mr-2" /> Add Service
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => setShowAddService(true)}
+                    disabled={verificationStatus === 'pending'}
+                    title={verificationStatus === 'pending' ? 'Your profile must be approved by admin before adding services' : ''}
+                  >
+                    <Plus className="h-4 w-4 mr-2" /> {verificationStatus === 'pending' ? 'Pending Approval' : 'Add Service'}
                   </Button>
                 </CardHeader>
                 <CardContent className="space-y-4">
