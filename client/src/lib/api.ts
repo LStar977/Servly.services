@@ -317,9 +317,10 @@ export const messageAPI = {
 // Documents & Verification
 export const documentAPI = {
   upload: async (document: any) => {
-    const res = await fetch(`${API_BASE}/documents`, {
+    const res = await fetch(`${API_BASE}/documents/upload`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(document),
     });
     const data = await res.json();
@@ -328,23 +329,24 @@ export const documentAPI = {
   },
 
   getByProviderId: async (providerId: string) => {
-    const res = await fetch(`${API_BASE}/providers/${providerId}/documents`);
+    const res = await fetch(`${API_BASE}/documents?providerId=${providerId}`);
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to fetch documents');
     return data.documents || [];
   },
 
   getPendingProviders: async () => {
-    const res = await fetch(`${API_BASE}/admin/pending-providers`);
+    const res = await fetch(`${API_BASE}/admin/verification/pending`, { credentials: 'include' });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to fetch pending providers');
     return data.providers || [];
   },
 
   approveProvider: async (providerId: string) => {
-    const res = await fetch(`${API_BASE}/admin/providers/${providerId}/approve`, {
-      method: 'PATCH',
+    const res = await fetch(`${API_BASE}/admin/verification/approve/${providerId}`, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({}),
     });
     const data = await res.json();
@@ -353,9 +355,10 @@ export const documentAPI = {
   },
 
   rejectProvider: async (providerId: string) => {
-    const res = await fetch(`${API_BASE}/admin/providers/${providerId}/reject`, {
-      method: 'PATCH',
+    const res = await fetch(`${API_BASE}/admin/verification/reject/${providerId}`, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({}),
     });
     const data = await res.json();

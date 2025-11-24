@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { mockProviders, categories } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
-import { providerAPI, bookingAPI, serviceAPI, reviewAPI } from "@/lib/api";
+import { providerAPI, bookingAPI, serviceAPI, reviewAPI, documentAPI } from "@/lib/api";
 import type { Booking } from "@/lib/data";
 import type { Review } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, MapPin, Clock, CheckCircle, XCircle, Plus, User, Trash2, TrendingUp, DollarSign, Gift, Star, MessageSquare, AlertCircle } from "lucide-react";
+import { Calendar, MapPin, Clock, CheckCircle, XCircle, Plus, User, Trash2, TrendingUp, DollarSign, Gift, Star, MessageSquare, AlertCircle, FileUp, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 
@@ -36,6 +36,8 @@ export default function ProviderDashboard() {
   const [isSaving, setIsSaving] = useState(false);
   const [providerProfile, setProviderProfile] = useState<any>(null);
   const [verificationStatus, setVerificationStatus] = useState<string>('pending');
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -156,6 +158,37 @@ export default function ProviderDashboard() {
         description: error instanceof Error ? error.message : "Could not delete service",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleDocumentUpload = async (docType: string, file: File) => {
+    setUploadingDoc(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64 = e.target?.result as string;
+        await documentAPI.upload({
+          filename: file.name,
+          documentType: docType,
+          fileUrl: base64,
+        });
+        toast({
+          title: "Document uploaded",
+          description: "Your document has been submitted for review",
+        });
+        // Reload documents
+        const docs = await documentAPI.getByProviderId(providerId);
+        setDocuments(docs);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      toast({
+        title: "Upload failed",
+        description: error instanceof Error ? error.message : "Could not upload document",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingDoc(false);
     }
   };
 
@@ -364,7 +397,7 @@ export default function ProviderDashboard() {
       </div>
 
       <Tabs defaultValue="requests" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 lg:w-[700px]">
+        <TabsList className="grid w-full grid-cols-6 lg:w-[900px]">
           <TabsTrigger value="requests" className="relative">
             Requests
             {pendingBookings.length > 0 && (
@@ -377,6 +410,9 @@ export default function ProviderDashboard() {
           <TabsTrigger value="earnings">Money Made</TabsTrigger>
           <TabsTrigger value="reviews">Reviews</TabsTrigger>
           <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="verification" className={verificationStatus === 'pending' ? 'bg-yellow-50 text-yellow-900' : ''}>
+            Verification
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="requests" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -762,6 +798,103 @@ export default function ProviderDashboard() {
                  </CardContent>
                </Card>
             </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="verification" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Verification Documents</h2>
+              <p className="text-muted-foreground mb-6">Upload your verification documents here. Once submitted, our admin team will review them and approve your profile.</p>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Upload Documents</CardTitle>
+                <CardDescription>Submit required documents for verification</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  {['id', 'business', 'license', 'insurance', 'background', 'portfolio'].map((docType) => (
+                    <div key={docType} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
+                      <div className="flex-1">
+                        <h4 className="font-semibold capitalize">{docType === 'id' ? 'Identity (ID)' : docType === 'business' ? 'Business Registration' : docType === 'background' ? 'Background Check' : docType === 'portfolio' ? 'Portfolio / Proof of Work' : docType}</h4>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {docType === 'id' && 'Driver\'s License, Passport, or Provincial ID'}
+                          {docType === 'business' && 'Business registration number or documents'}
+                          {docType === 'license' && 'Trade license or professional certification'}
+                          {docType === 'insurance' && 'Insurance certificate or proof'}
+                          {docType === 'background' && 'Background check results'}
+                          {docType === 'portfolio' && 'Photos, website link, or previous work samples'}
+                        </p>
+                      </div>
+                      <input
+                        type="file"
+                        id={`doc-${docType}`}
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleDocumentUpload(docType, file);
+                        }}
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => document.getElementById(`doc-${docType}`)?.click()}
+                        disabled={uploadingDoc || verificationStatus === 'approved'}
+                      >
+                        <FileUp className="h-4 w-4 mr-2" />
+                        Upload
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+
+                {documents.length > 0 && (
+                  <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <h4 className="font-semibold text-green-900 mb-2">Uploaded Documents:</h4>
+                    <ul className="space-y-1">
+                      {documents.map((doc) => (
+                        <li key={doc.id} className="flex items-center gap-2 text-sm text-green-800">
+                          <Download className="h-4 w-4" />
+                          {doc.filename} ({doc.documentType})
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {verificationStatus === 'pending' && documents.length > 0 && (
+              <Card className="bg-blue-50 border-blue-200">
+                <CardContent className="pt-6">
+                  <p className="text-sm text-blue-900">
+                    <strong>✓ Documents Uploaded:</strong> Your verification documents have been submitted. Our admin team will review them within 3-5 business days and notify you of approval.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {verificationStatus === 'approved' && (
+              <Card className="bg-green-50 border-green-200">
+                <CardContent className="pt-6">
+                  <p className="text-sm text-green-900">
+                    <strong>✓ Approved:</strong> Your profile has been verified and approved! You can now list your services and start accepting bookings.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {verificationStatus === 'rejected' && (
+              <Card className="bg-red-50 border-red-200">
+                <CardContent className="pt-6">
+                  <p className="text-sm text-red-900">
+                    <strong>✗ Rejected:</strong> Your verification was not approved. Please email sservly@gmail.com for details and resubmit if needed.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
       </Tabs>
