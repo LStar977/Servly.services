@@ -42,9 +42,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         city,
       });
       
-      // Return user without password
-      const safeUser = { ...newUser, password: undefined };
-      res.status(201).json({ user: safeUser });
+      // Establish session for new user
+      req.login(newUser, (err) => {
+        if (err) {
+          console.error("Session error:", err);
+          res.status(400).json({ message: "Account created but session failed" });
+          return;
+        }
+        // Return user without password
+        const safeUser = { ...newUser, password: undefined };
+        res.status(201).json({ user: safeUser });
+      });
     } catch (error: any) {
       console.error("Signup error:", error);
       res.status(400).json({ message: error.message || "Signup failed" });
@@ -706,6 +714,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }
+  });
+
+  // OAuth redirect endpoint
+  app.get("/api/login", (req, res) => {
+    // For OAuth providers, redirect to Replit Auth or show a message
+    // In a real implementation, this would integrate with Replit Auth or an OAuth provider
+    // For now, redirect to signup page
+    res.redirect('/auth/signup');
   });
 
   // Health check endpoint

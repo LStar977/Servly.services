@@ -167,18 +167,22 @@ export default function Signup() {
                 <FormField
                   control={form.control}
                   name="province"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Province/State</FormLabel>
-                      <FormControl>
-                        <select {...field} className="w-full h-10 px-3 py-2 rounded-lg border border-input bg-background text-foreground">
-                          <option value="">Select province/state</option>
-                          {(provincesMap[form.watch("country")] || []).map(p => <option key={p} value={p}>{p}</option>)}
-                        </select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const selectedCountry = form.watch("country") as string | undefined;
+                    const provinces = selectedCountry ? (provincesMap[selectedCountry] || []) : [];
+                    return (
+                      <FormItem>
+                        <FormLabel>Province/State</FormLabel>
+                        <FormControl>
+                          <select {...field} className="w-full h-10 px-3 py-2 rounded-lg border border-input bg-background text-foreground">
+                            <option value="">Select province/state</option>
+                            {provinces.map(p => <option key={p} value={p}>{p}</option>)}
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
               )}
 
@@ -186,18 +190,22 @@ export default function Signup() {
                 <FormField
                   control={form.control}
                   name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>City</FormLabel>
-                      <FormControl>
-                        <select {...field} className="w-full h-10 px-3 py-2 rounded-lg border border-input bg-background text-foreground">
-                          <option value="">Select city</option>
-                          {(citiesMap[form.watch("province")] || []).map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const selectedProvince = form.watch("province") as string | undefined;
+                    const cities = selectedProvince ? (citiesMap[selectedProvince] || []) : [];
+                    return (
+                      <FormItem>
+                        <FormLabel>City</FormLabel>
+                        <FormControl>
+                          <select {...field} className="w-full h-10 px-3 py-2 rounded-lg border border-input bg-background text-foreground">
+                            <option value="">Select city</option>
+                            {cities.map(c => <option key={c} value={c}>{c}</option>)}
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
               )}
 
