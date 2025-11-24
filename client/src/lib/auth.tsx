@@ -16,7 +16,12 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
+  let toast: ReturnType<typeof useToast> | null = null;
+  try {
+    toast = useToast();
+  } catch (e) {
+    // useToast not available yet, will be used in pages instead
+  }
 
   // Check if user is already logged in via OAuth or session on mount
   useEffect(() => {
@@ -41,16 +46,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const loggedInUser = await authAPI.login(email, password);
       setUser(loggedInUser);
-      toast({
-        title: "Welcome back!",
-        description: `Logged in as ${loggedInUser.name}`,
-      });
+      if (toast) {
+        toast({
+          title: "Welcome back!",
+          description: `Logged in as ${loggedInUser.name}`,
+        });
+      }
     } catch (error) {
-      toast({
-        title: "Login failed",
-        description: error instanceof Error ? error.message : "Invalid credentials",
-        variant: "destructive",
-      });
+      if (toast) {
+        toast({
+          title: "Login failed",
+          description: error instanceof Error ? error.message : "Invalid credentials",
+          variant: "destructive",
+        });
+      }
       throw error;
     } finally {
       setIsLoading(false);
@@ -62,16 +71,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const newUser = await authAPI.signup(userData);
       setUser(newUser);
-      toast({
-        title: "Account created",
-        description: "Welcome to Servly!",
-      });
+      if (toast) {
+        toast({
+          title: "Account created",
+          description: "Welcome to Servly!",
+        });
+      }
     } catch (error) {
-      toast({
-        title: "Signup failed",
-        description: error instanceof Error ? error.message : "Could not create account",
-        variant: "destructive",
-      });
+      if (toast) {
+        toast({
+          title: "Signup failed",
+          description: error instanceof Error ? error.message : "Could not create account",
+          variant: "destructive",
+        });
+      }
       throw error;
     } finally {
       setIsLoading(false);
