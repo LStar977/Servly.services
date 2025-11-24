@@ -89,38 +89,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, password } = req.body;
       
+      console.log("[LOGIN] Attempting login with email:", email);
+      
       if (!email || !password) {
+        console.log("[LOGIN] Missing email or password");
         res.status(400).json({ message: "Email and password are required" });
         return;
       }
       
       const user = await storage.getUserByEmail(email);
+      console.log("[LOGIN] User found:", user ? "Yes" : "No");
+      
       if (!user) {
+        console.log("[LOGIN] No user found with email:", email);
         res.status(401).json({ message: "Invalid credentials" });
         return;
       }
       
       if (!user.password) {
-        res.status(401).json({ message: "Invalid credentials" });
+        console.log("[LOGIN] User has no password hash (OAuth user?)");
+        res.status(401).json({ message: "This account uses OAuth login. Please use Google/Apple signin instead." });
         return;
       }
       
+      console.log("[LOGIN] Comparing passwords...");
       const isValid = await compare(password, user.password);
+      console.log("[LOGIN] Password comparison result:", isValid);
+      
       if (!isValid) {
+        console.log("[LOGIN] Password mismatch");
         res.status(401).json({ message: "Invalid credentials" });
         return;
       }
       
+      console.log("[LOGIN] Password valid, establishing session...");
       req.login(user, (err) => {
         if (err) {
-          console.error("Session error:", err);
+          console.error("[LOGIN] Session error:", err);
           res.status(400).json({ message: "Failed to establish session" });
           return;
         }
-        res.json({ user: { ...user, password: undefined } });
+        console.log("[LOGIN] Session established successfully");
+        const safeUser = { ...user, password: undefined };
+        res.json({ user: safeUser });
       });
     } catch (error: any) {
-      console.error("Login error:", error);
+      console.error("[LOGIN] Unexpected error:", error);
       res.status(400).json({ message: error.message || "Login failed" });
     }
   });
