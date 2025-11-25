@@ -99,23 +99,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!email || !password) {
         console.log("[LOGIN] Missing email or password");
-        res.status(400).json({ message: "Email and password are required" });
-        return;
+        return res.status(400).json({ message: "Email and password are required" });
       }
       
-      const user = await storage.getUserByEmail(email);
+      let user;
+      try {
+        user = await storage.getUserByEmail(email);
+      } catch (dbError: any) {
+        console.error("[LOGIN] Database error:", dbError);
+        return res.status(500).json({ message: "Database error: " + (dbError.message || "Unknown error") });
+      }
+      
       console.log("[LOGIN] User found:", user ? "Yes" : "No");
       
       if (!user) {
         console.log("[LOGIN] No user found with email:", email);
-        res.status(401).json({ message: "Invalid credentials" });
-        return;
+        return res.status(401).json({ message: "Invalid credentials" });
       }
       
       if (!user.password) {
         console.log("[LOGIN] User has no password hash (OAuth user?)");
-        res.status(401).json({ message: "This account uses OAuth login. Please use Google/Apple signin instead." });
-        return;
+        return res.status(401).json({ message: "This account uses OAuth login. Please use Google/Apple signin instead." });
       }
       
       console.log("[LOGIN] Comparing passwords...");
@@ -124,24 +128,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!isValid) {
         console.log("[LOGIN] Password mismatch");
-        res.status(401).json({ message: "Invalid credentials" });
-        return;
+        return res.status(401).json({ message: "Invalid credentials" });
       }
       
       console.log("[LOGIN] Password valid, establishing session...");
       req.login(user, (err) => {
         if (err) {
           console.error("[LOGIN] Session error:", err);
-          res.status(400).json({ message: "Failed to establish session" });
-          return;
+          return res.status(400).json({ message: "Failed to establish session" });
         }
         console.log("[LOGIN] Session established successfully");
         const safeUser = { ...user, password: undefined };
-        res.json({ user: safeUser });
+        return res.json({ user: safeUser });
       });
     } catch (error: any) {
       console.error("[LOGIN] Unexpected error:", error);
-      res.status(400).json({ message: error.message || "Login failed" });
+      return res.status(500).json({ message: "Server error: " + (error.message || "Unknown error") });
     }
   });
 
