@@ -40,6 +40,7 @@ export default function ProviderDashboard() {
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
   const [uploadedDocs, setUploadedDocs] = useState<Record<string, boolean>>({});
+  const [isSubmittingVerification, setIsSubmittingVerification] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -967,9 +968,44 @@ export default function ProviderDashboard() {
 
             {verificationStatus === 'pending' && documents.length > 0 && (
               <Card className="bg-blue-50 border-blue-200">
-                <CardContent className="pt-6">
+                <CardContent className="pt-6 space-y-4">
                   <p className="text-sm text-blue-900">
-                    <strong>✓ Documents Uploaded:</strong> Your verification documents have been submitted. Our admin team will review them within 3-5 business days and notify you of approval.
+                    <strong>✓ Documents Uploaded:</strong> You've uploaded {documents.length} document(s). Click "Apply for Verification" below to submit your application for admin review.
+                  </p>
+                  <Button 
+                    onClick={async () => {
+                      setIsSubmittingVerification(true);
+                      try {
+                        await documentAPI.submitForVerification(providerId);
+                        toast({
+                          title: 'Application Submitted',
+                          description: 'Your verification request has been sent to our admin team. You will be notified within 3-5 business days.',
+                        });
+                        setVerificationStatus('submitted');
+                      } catch (error) {
+                        toast({
+                          title: 'Submission Failed',
+                          description: error instanceof Error ? error.message : 'Could not submit verification',
+                          variant: 'destructive',
+                        });
+                      } finally {
+                        setIsSubmittingVerification(false);
+                      }
+                    }}
+                    disabled={isSubmittingVerification}
+                    data-testid="button-submit-verification"
+                  >
+                    {isSubmittingVerification ? 'Submitting...' : 'Apply for Verification'}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {verificationStatus === 'submitted' && (
+              <Card className="bg-yellow-50 border-yellow-200">
+                <CardContent className="pt-6">
+                  <p className="text-sm text-yellow-900">
+                    <strong>⏳ Pending Review:</strong> Your verification request has been submitted. Our admin team will review your documents and notify you of the outcome within 3-5 business days.
                   </p>
                 </CardContent>
               </Card>

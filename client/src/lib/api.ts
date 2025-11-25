@@ -365,6 +365,18 @@ export const documentAPI = {
     if (!res.ok) throw new Error(data.message || 'Failed to reject provider');
     return data.provider;
   },
+
+  submitForVerification: async (providerId: string) => {
+    const res = await fetch(`${API_BASE}/providers/${providerId}/submit-verification`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({}),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to submit for verification');
+    return data.provider;
+  },
 };
 
 // Notifications
