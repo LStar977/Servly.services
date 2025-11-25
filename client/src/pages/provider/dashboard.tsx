@@ -205,10 +205,15 @@ export default function ProviderDashboard() {
           const base64 = e.target?.result as string;
           
           // Upload document
+          const actualProviderId = providerProfile?.id;
+          if (!actualProviderId) {
+            throw new Error('Provider profile not found');
+          }
           await documentAPI.upload({
+            providerId: actualProviderId,
             filename: file.name,
             documentType: docType,
-            fileUrl: base64,
+            fileData: base64,
           });
 
           // Simulate final progress
@@ -223,8 +228,11 @@ export default function ProviderDashboard() {
 
           // Reload documents after 500ms to show completion
           setTimeout(async () => {
-            const docs = await documentAPI.getByProviderId(providerId);
-            setDocuments(docs);
+            const actualProviderId = providerProfile?.id;
+            if (actualProviderId) {
+              const docs = await documentAPI.getByProviderId(actualProviderId);
+              setDocuments(docs);
+            }
             setUploadProgress(prev => {
               const newProgress = { ...prev };
               delete newProgress[docType];
