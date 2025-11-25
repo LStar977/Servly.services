@@ -313,6 +313,48 @@ export default function ProviderDashboard() {
     }
   };
 
+  const handleSubmitProfile = async () => {
+    setIsSaving(true);
+    try {
+      // Save profile first
+      const profileData = {
+        userId: user?.id,
+        businessName: businessDetails.businessName,
+        description: businessDetails.description,
+        phone: businessDetails.phone,
+        city: businessDetails.city,
+        hoursOfOperation,
+        appointmentIntervalMinutes: parseInt(appointmentInterval),
+      };
+      
+      const profileRes = await fetch('/api/providers/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(profileData),
+      }).then(res => res.json());
+
+      // Then submit for verification
+      if (profileRes.profile?.id) {
+        await documentAPI.submitForVerification(profileRes.profile.id);
+        toast({
+          title: "✅ Profile Submitted Successfully!",
+          description: "Your profile has been submitted to our admin team for review. You'll be notified of approval within 3-5 business days.",
+        });
+        setVerificationStatus('submitted');
+      }
+    } catch (error) {
+      console.error('Submission error:', error);
+      toast({
+        title: "❌ Submission Failed",
+        description: error instanceof Error ? error.message : "Could not submit profile",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleSaveHours = async () => {
     try {
       if (!provider) return;
@@ -736,13 +778,26 @@ export default function ProviderDashboard() {
                       />
                     </div>
                   </div>
-                  <Button 
-                    onClick={handleSaveChanges}
-                    disabled={verificationStatus === 'pending' || isSaving}
-                    title={verificationStatus === 'pending' ? 'Your profile must be approved by admin before submitting' : ''}
-                  >
-                    {verificationStatus === 'pending' ? 'Pending Admin Approval' : 'Save Changes'}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleSaveChanges}
+                      disabled={verificationStatus === 'pending' || verificationStatus === 'submitted' || isSaving}
+                      variant="outline"
+                      title={verificationStatus === 'pending' ? 'Your profile is pending admin approval' : verificationStatus === 'submitted' ? 'Your profile is under review' : ''}
+                    >
+                      {verificationStatus === 'pending' ? 'Pending Approval' : verificationStatus === 'submitted' ? 'Under Review' : 'Save Changes'}
+                    </Button>
+                    {(verificationStatus !== 'pending' && verificationStatus !== 'submitted' && verificationStatus !== 'approved') && (
+                      <Button 
+                        onClick={handleSubmitProfile}
+                        disabled={isSaving || !businessDetails.businessName || !businessDetails.phone || !businessDetails.city}
+                        className="bg-blue-600 hover:bg-blue-700"
+                        data-testid="button-submit-profile"
+                      >
+                        {isSaving ? 'Submitting...' : 'Submit Profile for Review'}
+                      </Button>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
 
