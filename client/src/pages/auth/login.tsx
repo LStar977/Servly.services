@@ -23,14 +23,23 @@ export default function Login() {
   const [, setLocation] = useLocation();
   const [error, setError] = useState("");
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [redirectRole, setRedirectRole] = useState<string | null>(null);
 
-  // Check if user is already logged in (e.g., via OAuth) and is admin
+  // Check if user is already logged in (e.g., via OAuth) and redirect based on role
   useEffect(() => {
-    if (user && user.role === 'admin') {
-      setIsRedirecting(true);
-      setTimeout(() => {
-        setLocation("/admin/dashboard");
-      }, 1500);
+    if (user) {
+      // User is authenticated
+      if (user.role === 'admin') {
+        setRedirectRole('admin');
+        setIsRedirecting(true);
+        setTimeout(() => {
+          setLocation("/admin/dashboard");
+        }, 1500);
+      } else if (user.role === 'provider') {
+        setLocation("/provider/dashboard");
+      } else if (user.role === 'customer') {
+        setLocation("/");
+      }
     }
   }, [user, setLocation]);
 
@@ -63,7 +72,7 @@ export default function Login() {
     window.location.href = "/api/login";
   };
 
-  if (isRedirecting) {
+  if (isRedirecting && redirectRole === 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
         <Card className="w-full max-w-md border-0 shadow-xl bg-card/50 backdrop-blur-xl">
