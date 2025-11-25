@@ -109,10 +109,17 @@ export default function ProviderRequirements() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4">Become a Servly Provider</h1>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto mb-6">
             Servly connects customers with trusted, verified, and professional service providers.
             To keep our marketplace safe and reliable, we follow a simple and fair verification process — similar to Uber and DoorDash — while keeping onboarding fast and easy.
           </p>
+          <Button 
+            size="lg"
+            disabled={isLoading}
+            onClick={handleBecomeProvider}
+          >
+            {user ? 'Get Started as Provider' : 'Sign Up to Get Started'}
+          </Button>
         </div>
 
         {/* Requirements List */}
