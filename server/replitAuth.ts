@@ -81,11 +81,13 @@ export async function setupAuth(app: Express) {
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
     verified: passport.AuthenticateCallback
   ) => {
-    const user: any = {};
-    updateUserSession(user, tokens);
     const claims = tokens.claims();
-    // Store role in user object to be serialized
-    user.oauthRole = 'customer';
+    const user: any = {
+      id: claims.sub,
+      email: claims.email,
+      name: `${claims.first_name || ''} ${claims.last_name || ''}`.trim(),
+    };
+    updateUserSession(user, tokens);
     await upsertUser(claims, 'customer');
     verified(null, user);
   };
