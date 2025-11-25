@@ -1,0 +1,1180 @@
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "wouter";
+import { mockProviders, categories } from "@/lib/data";
+import { useAuth } from "@/lib/auth";
+import { providerAPI, bookingAPI, serviceAPI, reviewAPI, documentAPI } from "@/lib/api";
+import type { Booking } from "@/lib/data";
+import type { Review } from "@shared/schema";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar, MapPin, Clock, CheckCircle, XCircle, Plus, User, Trash2, TrendingUp, DollarSign, Gift, Star, MessageSquare, AlertCircle, FileUp, Download } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { formatDistanceToNow } from "date-fns";
+
+export default function ProviderDashboard() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
+  
+  // Use current logged-in user's ID as providerId
+  const providerId = user?.id || 'p1';
+  const provider = mockProviders.find(p => p.id === providerId);
+  
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [services, setServices] = useState(provider?.services || []);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [payouts, setPayouts] = useState<any[]>([]);
+  const [isLoadingBookings, setIsLoadingBookings] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [providerProfile, setProviderProfile] = useState<any>(null);
+  const [verificationStatus, setVerificationStatus] = useState<string>('pending');
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+  const [uploadedDocs, setUploadedDocs] = useState<Record<string, boolean>>({});
+  const [isSubmittingVerification, setIsSubmittingVerification] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setLocation("/auth/login");
+      return;
+    }
+    
+    const loadData = async () => {
+      try {
+        const profileData = await providerAPI.getById(providerId);
+        if (!profileData) {
+          setIsLoadingBookings(false);
+          return;
+        }
+        
+        // Use the actual provider profile ID for document fetching
+        const actualProviderId = profileData.id;
+        
+        const [bookingsData, reviewsData, payoutsData, docsData] = await Promise.all([
+          providerAPI.getBookings(actualProviderId),
+          reviewAPI.getByProviderId(actualProviderId),
+          providerAPI.getPayouts(actualProviderId),
+          documentAPI.getByProviderId(actualProviderId),
+        ]);
+        
+        setBookings(bookingsData);
+        setReviews(reviewsData);
+        setPayouts(payoutsData);
+        setProviderProfile(profileData);
+        setVerificationStatus(profileData.verificationStatus || 'pending');
+        
+        // Load documents and sync upload status
+        setDocuments(docsData);
+        const uploadedDocTypes: Record<string, boolean> = {};
+        docsData.forEach((doc: any) => {
+          uploadedDocTypes[doc.documentType] = true;
+        });
+        setUploadedDocs(uploadedDocTypes);
+      } catch (error) {
+        console.error("Failed to load data:", error);
+        toast({
+          title: "Failed to load dashboard data",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingBookings(false);
+      }
+    };
+    loadData();
+  }, [providerId, toast, user, setLocation]);
+  const [hoursOfOperation, setHoursOfOperation] = useState(provider?.hoursOfOperation || {});
+  const [appointmentInterval, setAppointmentInterval] = useState(
+    (provider as any)?.appointmentIntervalMinutes?.toString() || '60'
+  );
+  
+  const [businessDetails, setBusinessDetails] = useState({
+    businessName: provider?.businessName || '',
+    description: provider?.description || '',
+    phone: provider?.phone || '',
+    city: provider?.city || '',
+  });
+  
+  const [showAddService, setShowAddService] = useState(false);
+  const [newService, setNewService] = useState({ title: '', description: '', price: '', priceUnit: 'visit' });
+
+  const handleStatusChange = async (bookingId: string, newStatus: Booking['status']) => {
+    try {
+      await bookingAPI.updateStatus(bookingId, newStatus);
+      setBookings(prev => prev.map(b => 
+        b.id === bookingId ? { ...b, status: newStatus } : b
+      ));
+      
+      toast({
+        title: "Status Updated",
+        description: `Booking marked as ${newStatus}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to update status",
+        description: error instanceof Error ? error.message : "Could not update booking",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddService = async () => {
+    if (!newService.title || !newService.price) {
+      toast({
+        title: "Error",
+        description: "Please fill in service name and price",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const service = await serviceAPI.create({
+        providerId,
+        title: newService.title,
+        description: newService.description,
+        price: parseFloat(newService.price),
+        priceUnit: newService.priceUnit as 'hour' | 'job' | 'visit',
+        categoryId: 'cat_1',
+      });
+
+      setServices([...services, service]);
+      setNewService({ title: '', description: '', price: '', priceUnit: 'visit' });
+      setShowAddService(false);
+      
+      toast({
+        title: "Service Added",
+        description: `${service.title} has been added`,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to add service",
+        description: error instanceof Error ? error.message : "Could not create service",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteService = async (serviceId: string) => {
+    try {
+      await serviceAPI.delete(serviceId);
+      setServices(services.filter(s => s.id !== serviceId));
+      toast({
+        title: "Service Removed",
+        description: "Service has been deleted",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to delete service",
+        description: error instanceof Error ? error.message : "Could not delete service",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDocumentUpload = async (docType: string, file: File) => {
+    setUploadingDoc(true);
+    setUploadProgress(prev => ({ ...prev, [docType]: 0 }));
+    
+    try {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+      if (!validTypes.includes(file.type)) {
+        throw new Error('Please upload an image (JPG, PNG, GIF) or PDF file');
+      }
+
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          const current = prev[docType] || 0;
+          return { ...prev, [docType]: Math.min(current + Math.random() * 30, 90) };
+        });
+      }, 300);
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const base64 = e.target?.result as string;
+          
+          // Upload document
+          const actualProviderId = providerProfile?.id;
+          if (!actualProviderId) {
+            throw new Error('Provider profile not found');
+          }
+          await documentAPI.upload({
+            providerId: actualProviderId,
+            filename: file.name,
+            documentType: docType,
+            fileData: base64,
+          });
+
+          // Simulate final progress
+          clearInterval(progressInterval);
+          setUploadProgress(prev => ({ ...prev, [docType]: 100 }));
+          setUploadedDocs(prev => ({ ...prev, [docType]: true }));
+
+          toast({
+            title: "Document uploaded successfully",
+            description: `${file.name} has been saved and submitted for review`,
+          });
+
+          // Reload documents after 500ms to show completion
+          setTimeout(async () => {
+            const actualProviderId = providerProfile?.id;
+            if (actualProviderId) {
+              const docs = await documentAPI.getByProviderId(actualProviderId);
+              setDocuments(docs);
+            }
+            setUploadProgress(prev => {
+              const newProgress = { ...prev };
+              delete newProgress[docType];
+              return newProgress;
+            });
+          }, 500);
+        } catch (error) {
+          clearInterval(progressInterval);
+          toast({
+            title: "Upload failed",
+            description: error instanceof Error ? error.message : "Could not upload document",
+            variant: "destructive",
+          });
+          setUploadProgress(prev => {
+            const newProgress = { ...prev };
+            delete newProgress[docType];
+            return newProgress;
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      toast({
+        title: "Invalid file",
+        description: error instanceof Error ? error.message : "Please select a valid file",
+        variant: "destructive",
+      });
+      setUploadProgress(prev => {
+        const newProgress = { ...prev };
+        delete newProgress[docType];
+        return newProgress;
+      });
+    } finally {
+      setUploadingDoc(false);
+    }
+  };
+
+  const handleHoursChange = (day: string, field: 'open' | 'close', value: string) => {
+    setHoursOfOperation(prev => ({
+      ...prev,
+      [day]: { ...prev[day], [field]: value }
+    }));
+  };
+
+  const handleSaveProfile = async () => {
+    setIsSaving(true);
+    try {
+      // First, create or update provider profile
+      const profileData = {
+        userId: user?.id,
+        businessName: businessDetails.businessName,
+        description: businessDetails.description,
+        phone: businessDetails.phone,
+        city: businessDetails.city,
+        hoursOfOperation,
+        appointmentIntervalMinutes: parseInt(appointmentInterval),
+      };
+      
+      await fetch('/api/providers/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(profileData),
+      }).then(res => res.json());
+      
+      toast({
+        title: "Profile Saved",
+        description: "Your business profile has been updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to save profile",
+        description: error instanceof Error ? error.message : "Could not save profile",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSubmitProfile = async () => {
+    setIsSaving(true);
+    try {
+      // Save profile first
+      const profileData = {
+        userId: user?.id,
+        businessName: businessDetails.businessName,
+        description: businessDetails.description,
+        phone: businessDetails.phone,
+        city: businessDetails.city,
+        hoursOfOperation,
+        appointmentIntervalMinutes: parseInt(appointmentInterval),
+      };
+      
+      const profileRes = await fetch('/api/providers/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(profileData),
+      }).then(res => res.json());
+
+      // Then submit for verification
+      if (profileRes.profile?.id) {
+        await documentAPI.submitForVerification(profileRes.profile.id);
+        toast({
+          title: "✅ Profile Submitted Successfully!",
+          description: "Your profile has been submitted to our admin team for review. You'll be notified of approval within 3-5 business days.",
+        });
+        setVerificationStatus('submitted');
+      }
+    } catch (error) {
+      console.error('Submission error:', error);
+      toast({
+        title: "❌ Submission Failed",
+        description: error instanceof Error ? error.message : "Could not submit profile",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveHours = async () => {
+    try {
+      if (!provider) return;
+      await providerAPI.update(provider.id, {
+        hoursOfOperation,
+      });
+      toast({
+        title: "Hours Saved",
+        description: "Your business hours have been updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to save hours",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSaveAppointmentInterval = async () => {
+    try {
+      if (!provider) return;
+      await providerAPI.update(provider.id, {
+        appointmentIntervalMinutes: parseInt(appointmentInterval),
+      });
+      toast({
+        title: "Appointment interval saved",
+        description: `Appointments will be scheduled every ${appointmentInterval} minutes`,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to save appointment interval",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSaveChanges = async () => {
+    try {
+      if (!provider) return;
+      await providerAPI.update(provider.id, {
+        businessName: businessDetails.businessName,
+        description: businessDetails.description,
+        phone: businessDetails.phone,
+        city: businessDetails.city,
+        hoursOfOperation,
+      });
+      toast({
+        title: "Changes Saved",
+        description: "Your business details have been updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to save changes",
+        description: error instanceof Error ? error.message : "Could not update profile",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const pendingBookings = bookings.filter(b => b.status === 'confirmed' || b.status === 'pending');
+  const upcomingBookings = bookings.filter(b => b.status === 'accepted');
+  const pastBookings = bookings.filter(b => ['completed', 'cancelled', 'declined'].includes(b.status));
+  const completedBookings = bookings.filter(b => b.status === 'completed');
+
+  // Calculate real analytics data
+  const totalEarnings = payouts.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+  const completedPayouts = payouts.filter(p => p.status === 'paid');
+  const averageRating = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) : '0.0';
+  
+  const analytics = {
+    totalEarnings: totalEarnings.toFixed(2),
+    monthlyEarnings: totalEarnings.toFixed(2),
+    totalTips: 0,
+    averageRating: parseFloat(averageRating as string),
+    totalReviews: reviews.length,
+    weeklieClicks: [12, 18, 15, 22, 25, 18, 20],
+    completedJobs: completedBookings.length,
+  };
+
+  const BookingCard = ({ booking, showActions = false }: { booking: Booking, showActions?: boolean }) => {
+    const service = services.find(s => s.id === booking.serviceId);
+    
+    return (
+      <Card className="mb-4">
+        <CardContent className="p-6">
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex gap-3">
+               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                 <User className="h-5 w-5" />
+               </div>
+               <div>
+                 <h3 className="font-bold text-lg">Customer Name</h3>
+                 <p className="text-sm text-muted-foreground">New Customer</p>
+               </div>
+            </div>
+            <Badge variant={booking.status === 'pending' ? 'secondary' : 'outline'} className="capitalize">
+              {booking.status}
+            </Badge>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-4 mb-4 text-sm">
+             <div>
+               <p className="text-muted-foreground mb-1">Service</p>
+               <p className="font-medium">{service?.title}</p>
+             </div>
+             <div>
+               <p className="text-muted-foreground mb-1">Date & Time</p>
+               <p className="font-medium">
+                 {new Date(booking.dateTime).toLocaleDateString()} at {new Date(booking.dateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+               </p>
+             </div>
+             <div className="md:col-span-2">
+               <p className="text-muted-foreground mb-1">Location</p>
+               <p className="font-medium flex items-center gap-1">
+                 <MapPin className="h-3 w-3" /> {booking.address}
+               </p>
+             </div>
+          </div>
+          
+          {booking.notes && (
+            <div className="bg-muted/30 p-3 rounded-md text-sm italic text-muted-foreground mb-4">
+              "{booking.notes}"
+            </div>
+          )}
+          
+          {showActions && (
+            <div className="flex gap-3 pt-2">
+              <Button className="flex-1 gap-2" onClick={() => handleStatusChange(booking.id, 'accepted')}>
+                <CheckCircle className="h-4 w-4" /> Accept Request
+              </Button>
+              <Button variant="outline" className="flex-1 gap-2 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => handleStatusChange(booking.id, 'declined')}>
+                <XCircle className="h-4 w-4" /> Decline
+              </Button>
+            </div>
+          )}
+          
+          {booking.status === 'accepted' && (
+             <Button className="w-full gap-2" variant="secondary" onClick={() => handleStatusChange(booking.id, 'completed')}>
+               <CheckCircle className="h-4 w-4" /> Mark as Completed
+             </Button>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Provider Portal</h1>
+          <p className="text-muted-foreground">Welcome back, {provider?.businessName}</p>
+        </div>
+        <div className="flex items-center gap-2 bg-card border p-2 rounded-lg">
+           <Switch id="availability" defaultChecked />
+           <Label htmlFor="availability" className="text-sm font-medium cursor-pointer">Accepting New Jobs</Label>
+        </div>
+      </div>
+
+      <Tabs defaultValue="requests" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-6 lg:w-[900px]">
+          <TabsTrigger value="requests" className="relative">
+            Requests
+            {pendingBookings.length > 0 && (
+              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] text-white flex items-center justify-center">
+                {pendingBookings.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="schedule">Schedule</TabsTrigger>
+          <TabsTrigger value="earnings">Money Made</TabsTrigger>
+          <TabsTrigger value="reviews">Reviews</TabsTrigger>
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="verification" className={verificationStatus === 'pending' ? 'bg-yellow-50 text-yellow-900' : ''}>
+            Verification
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="requests" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div>
+            <h2 className="text-xl font-semibold mb-4">New Requests</h2>
+            {pendingBookings.length === 0 ? (
+              <div className="text-center p-12 border rounded-xl bg-muted/10 border-dashed">
+                <p className="text-muted-foreground">No new booking requests.</p>
+              </div>
+            ) : (
+              pendingBookings.map(booking => (
+                <BookingCard key={booking.id} booking={booking} showActions={true} />
+              ))
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="schedule" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Upcoming Jobs</h2>
+            {upcomingBookings.length === 0 ? (
+              <div className="text-center p-12 border rounded-xl bg-muted/10 border-dashed">
+                <p className="text-muted-foreground">No upcoming jobs scheduled.</p>
+              </div>
+            ) : (
+              upcomingBookings.map(booking => (
+                <BookingCard key={booking.id} booking={booking} />
+              ))
+            )}
+          </div>
+          
+          <div className="pt-8 border-t">
+             <h2 className="text-xl font-semibold mb-4">Past History</h2>
+             <div className="opacity-70">
+               {pastBookings.map(booking => (
+                 <BookingCard key={booking.id} booking={booking} />
+               ))}
+             </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="earnings" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-muted-foreground">Total Earnings</span>
+                  <DollarSign className="h-4 w-4 text-green-600" />
+                </div>
+                <div className="text-3xl font-bold text-green-600">${analytics.totalEarnings}</div>
+                <p className="text-xs text-muted-foreground mt-2">All-time</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-muted-foreground">This Month</span>
+                  <TrendingUp className="h-4 w-4 text-blue-600" />
+                </div>
+                <div className="text-3xl font-bold text-blue-600">${analytics.monthlyEarnings}</div>
+                <p className="text-xs text-muted-foreground mt-2">Last 30 days</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-muted-foreground">Tips Received</span>
+                  <Gift className="h-4 w-4 text-yellow-600" />
+                </div>
+                <div className="text-3xl font-bold text-yellow-600">${analytics.totalTips}</div>
+                <p className="text-xs text-muted-foreground mt-2">{analytics.completedJobs} completed jobs</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-muted-foreground">Rating</span>
+                  <Star className="h-4 w-4 text-orange-600 fill-orange-600" />
+                </div>
+                <div className="text-3xl font-bold text-orange-600">{analytics.averageRating}</div>
+                <p className="text-xs text-muted-foreground mt-2">{analytics.totalReviews} reviews</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Weekly Profile Clicks</CardTitle>
+              <CardDescription>Your visibility on the platform</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-end justify-between h-32 gap-2">
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
+                  <div key={day} className="flex-1 flex flex-col items-center gap-2">
+                    <div 
+                      className="w-full bg-primary rounded-t-lg transition-all"
+                      style={{ height: `${(analytics.weeklieClicks[i] / 30) * 100}%` }}
+                    />
+                    <span className="text-xs text-muted-foreground">{day}</span>
+                    <span className="text-sm font-bold">{analytics.weeklieClicks[i]}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="reviews" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div>
+            <div className="mb-6">
+              <h2 className="text-2xl font-semibold mb-2">Customer Reviews</h2>
+              <p className="text-muted-foreground">See what customers are saying about your service</p>
+            </div>
+
+            {reviews.length === 0 ? (
+              <Card className="p-12 text-center border-dashed">
+                <div className="flex justify-center mb-4">
+                  <div className="bg-muted p-4 rounded-full">
+                    <MessageSquare className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold mb-2">No reviews yet</h3>
+                <p className="text-muted-foreground">Complete more bookings to start receiving customer reviews.</p>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 mb-6 p-4 bg-primary/5 rounded-lg border border-primary/10">
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`h-5 w-5 ${
+                            i < Math.floor(parseFloat(analytics.averageRating as any))
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'text-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-lg font-bold">{analytics.averageRating}</span>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Based on {analytics.totalReviews} review{analytics.totalReviews !== 1 ? 's' : ''}
+                  </div>
+                </div>
+
+                {reviews.map((review) => {
+                  const customer = mockProviders[0]; // Placeholder - you'd fetch actual customer data
+                  return (
+                    <Card key={review.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                              {String.fromCharCode(65 + Math.floor(Math.random() * 26))}
+                            </div>
+                            <div>
+                              <div className="font-medium">Customer</div>
+                              <div className="text-sm text-muted-foreground">
+                                {review.createdAt ? formatDistanceToNow(new Date(review.createdAt), { addSuffix: true }) : 'Recently'}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-4 w-4 ${
+                                  i < review.rating
+                                    ? 'fill-yellow-400 text-yellow-400'
+                                    : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        {review.comment && (
+                          <p className="text-sm text-muted-foreground leading-relaxed">{review.comment}</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="profile" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="md:col-span-2 space-y-6">
+              {verificationStatus === 'pending' && (
+                <Card className="border-yellow-200 bg-yellow-50">
+                  <CardContent className="p-6 flex items-start gap-4">
+                    <AlertCircle className="h-6 w-6 text-yellow-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="font-semibold text-yellow-900 text-lg">Waiting for Approval!</h3>
+                      <p className="text-sm text-yellow-800 mt-1">
+                        Your profile is currently under review by our admin team. Once approved, you'll be able to list your services and start accepting bookings.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Business Details</CardTitle>
+                  <CardDescription>Manage your public profile information</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Business Name</Label>
+                    <Input 
+                      value={businessDetails.businessName}
+                      onChange={(e) => setBusinessDetails({...businessDetails, businessName: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Textarea 
+                      value={businessDetails.description}
+                      onChange={(e) => setBusinessDetails({...businessDetails, description: e.target.value})}
+                      rows={4} 
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Phone</Label>
+                      <Input 
+                        value={businessDetails.phone}
+                        onChange={(e) => setBusinessDetails({...businessDetails, phone: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>City</Label>
+                      <Input 
+                        value={businessDetails.city}
+                        onChange={(e) => setBusinessDetails({...businessDetails, city: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleSaveChanges}
+                      disabled={verificationStatus === 'pending' || verificationStatus === 'submitted' || isSaving}
+                      variant="outline"
+                      title={verificationStatus === 'pending' ? 'Your profile is pending admin approval' : verificationStatus === 'submitted' ? 'Your profile is under review' : ''}
+                    >
+                      {verificationStatus === 'pending' ? 'Pending Approval' : verificationStatus === 'submitted' ? 'Under Review' : 'Save Changes'}
+                    </Button>
+                    {(verificationStatus !== 'pending' && verificationStatus !== 'submitted' && verificationStatus !== 'approved') && (
+                      <Button 
+                        onClick={handleSubmitProfile}
+                        disabled={isSaving || !businessDetails.businessName || !businessDetails.phone || !businessDetails.city}
+                        className="bg-blue-600 hover:bg-blue-700"
+                        data-testid="button-submit-profile"
+                      >
+                        {isSaving ? 'Submitting...' : 'Submit Profile for Review'}
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Business Hours</CardTitle>
+                  <CardDescription>Set your operating hours for each day</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {days.map(day => (
+                    <div key={day} className="flex items-center gap-4 pb-4 border-b last:border-0">
+                      <div className="w-24 font-medium text-sm">{day}</div>
+                      <div className="flex gap-2 flex-1 items-center">
+                        <Input 
+                          type="time" 
+                          defaultValue={hoursOfOperation[day]?.open || '09:00'}
+                          onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
+                          className="w-24"
+                        />
+                        <span className="text-muted-foreground">to</span>
+                        <Input 
+                          type="time" 
+                          defaultValue={hoursOfOperation[day]?.close || '17:00'}
+                          onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
+                          className="w-24"
+                        />
+                      </div>
+                      <Switch defaultChecked={!hoursOfOperation[day]?.closed} />
+                    </div>
+                  ))}
+                  <Button 
+                    className="mt-4" 
+                    onClick={handleSaveHours}
+                    disabled={verificationStatus === 'pending'}
+                    title={verificationStatus === 'pending' ? 'Your profile must be approved by admin before submitting' : ''}
+                  >
+                    {verificationStatus === 'pending' ? 'Pending Admin Approval' : 'Save Hours'}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Appointment Scheduling</CardTitle>
+                  <CardDescription>Set your preferred appointment time intervals</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="interval">Appointment Duration</Label>
+                    <Select value={appointmentInterval} onValueChange={setAppointmentInterval}>
+                      <SelectTrigger id="interval">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="30">Every 30 minutes</SelectItem>
+                        <SelectItem value="45">Every 45 minutes</SelectItem>
+                        <SelectItem value="60">Every 1 hour</SelectItem>
+                        <SelectItem value="90">Every 1.5 hours</SelectItem>
+                        <SelectItem value="120">Every 2 hours</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Customers will see available time slots based on this interval. Booked slots will appear unavailable.
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={handleSaveAppointmentInterval}
+                    disabled={verificationStatus === 'pending'}
+                    title={verificationStatus === 'pending' ? 'Your profile must be approved by admin before submitting' : ''}
+                  >
+                    {verificationStatus === 'pending' ? 'Pending Admin Approval' : 'Save Appointment Settings'}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Services</CardTitle>
+                    <CardDescription>Services you offer to customers</CardDescription>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => setShowAddService(true)}
+                    disabled={verificationStatus === 'pending'}
+                    title={verificationStatus === 'pending' ? 'Your profile must be approved by admin before adding services' : ''}
+                  >
+                    <Plus className="h-4 w-4 mr-2" /> {verificationStatus === 'pending' ? 'Pending Approval' : 'Add Service'}
+                  </Button>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {services.map(service => (
+                    <div key={service.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex-1">
+                        <h4 className="font-semibold">{service.title}</h4>
+                        <p className="text-sm text-muted-foreground">{service.description}</p>
+                      </div>
+                      <div className="text-right mr-4">
+                        <div className="font-bold">${service.price}</div>
+                        <div className="text-xs text-muted-foreground">per {service.priceUnit}</div>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleDeleteService(service.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+            
+            <div className="space-y-6">
+               <Card>
+                 <CardHeader>
+                   <CardTitle>Availability</CardTitle>
+                 </CardHeader>
+                 <CardContent>
+                   <div className="space-y-2">
+                     {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                       <div key={day} className="flex items-center justify-between">
+                         <span className="text-sm">{day}</span>
+                         <Switch defaultChecked={provider?.availability.includes(day)} />
+                       </div>
+                     ))}
+                   </div>
+                 </CardContent>
+               </Card>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="verification" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Verification Documents</h2>
+              <p className="text-muted-foreground mb-6">Upload your verification documents here. Once submitted, our admin team will review them and approve your profile.</p>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Upload Documents</CardTitle>
+                <CardDescription>Submit required documents for verification</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  {['id', 'business', 'license', 'insurance', 'background', 'portfolio'].map((docType) => {
+                    const isUploading = uploadProgress[docType] !== undefined;
+                    const uploadComplete = uploadedDocs[docType];
+                    const progress = uploadProgress[docType] || 0;
+
+                    return (
+                      <div key={docType} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
+                        <div className="flex-1">
+                          <h4 className="font-semibold capitalize flex items-center gap-2">
+                            {docType === 'id' ? 'Identity (ID)' : docType === 'business' ? 'Business Registration' : docType === 'background' ? 'Background Check' : docType === 'portfolio' ? 'Portfolio / Proof of Work' : docType}
+                            {uploadComplete && <CheckCircle className="h-5 w-5 text-green-600" />}
+                          </h4>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {docType === 'id' && 'Driver\'s License, Passport, or Provincial ID'}
+                            {docType === 'business' && 'Business registration number or documents'}
+                            {docType === 'license' && 'Trade license or professional certification'}
+                            {docType === 'insurance' && 'Insurance certificate or proof'}
+                            {docType === 'background' && 'Background check results'}
+                            {docType === 'portfolio' && 'Photos, website link, or previous work samples'}
+                          </p>
+                          
+                          {isUploading && (
+                            <div className="mt-3 space-y-1">
+                              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div
+                                  className="bg-primary h-full transition-all duration-300"
+                                  style={{ width: `${progress}%` }}
+                                />
+                              </div>
+                              <p className="text-xs text-muted-foreground">{Math.round(progress)}% uploaded</p>
+                            </div>
+                          )}
+                        </div>
+                        <input
+                          type="file"
+                          id={`doc-${docType}`}
+                          className="hidden"
+                          accept="image/jpeg,image/png,image/gif,application/pdf"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleDocumentUpload(docType, file);
+                          }}
+                        />
+                        <Button
+                          size="sm"
+                          variant={uploadComplete ? 'outline' : 'outline'}
+                          onClick={() => document.getElementById(`doc-${docType}`)?.click()}
+                          disabled={isUploading || verificationStatus === 'approved' || uploadComplete}
+                          className={uploadComplete ? 'bg-green-50 border-green-300' : ''}
+                        >
+                          {uploadComplete ? (
+                            <>
+                              <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                              Uploaded
+                            </>
+                          ) : isUploading ? (
+                            <>
+                              <div className="h-4 w-4 mr-2 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <FileUp className="h-4 w-4 mr-2" />
+                              Upload
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {documents.length > 0 && (
+                  <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <h4 className="font-semibold text-green-900 mb-2">Uploaded Documents:</h4>
+                    <ul className="space-y-1">
+                      {documents.map((doc) => (
+                        <li key={doc.id} className="flex items-center gap-2 text-sm text-green-800">
+                          <Download className="h-4 w-4" />
+                          {doc.filename} ({doc.documentType})
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {verificationStatus === 'pending' && documents.length > 0 && (
+              <Card className="bg-blue-50 border-blue-200">
+                <CardContent className="pt-6 space-y-4">
+                  <p className="text-sm text-blue-900">
+                    <strong>✓ Documents Uploaded:</strong> You've uploaded {documents.length} document(s). Click "Apply for Verification" below to submit your application for admin review.
+                  </p>
+                  <Button 
+                    onClick={async () => {
+                      setIsSubmittingVerification(true);
+                      try {
+                        const actualProviderId = providerProfile?.id;
+                        if (!actualProviderId) {
+                          throw new Error('Provider profile not found');
+                        }
+                        const result = await documentAPI.submitForVerification(actualProviderId);
+                        
+                        // Show success popup
+                        toast({
+                          title: '✅ Application Submitted Successfully!',
+                          description: 'Your verification request has been sent to our admin team. You will be notified within 3-5 business days.',
+                        });
+                        setVerificationStatus('submitted');
+                      } catch (error) {
+                        console.error('Submission error:', error);
+                        toast({
+                          title: '❌ Submission Failed',
+                          description: error instanceof Error ? error.message : 'Could not submit verification',
+                          variant: 'destructive',
+                        });
+                      } finally {
+                        setIsSubmittingVerification(false);
+                      }
+                    }}
+                    disabled={isSubmittingVerification}
+                    data-testid="button-submit-verification"
+                  >
+                    {isSubmittingVerification ? 'Submitting...' : 'Apply for Verification'}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {verificationStatus === 'submitted' && (
+              <Card className="bg-yellow-50 border-yellow-200">
+                <CardContent className="pt-6">
+                  <p className="text-sm text-yellow-900">
+                    <strong>⏳ Pending Review:</strong> Your verification request has been submitted. Our admin team will review your documents and notify you of the outcome within 3-5 business days.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {verificationStatus === 'approved' && (
+              <Card className="bg-green-50 border-green-200">
+                <CardContent className="pt-6">
+                  <p className="text-sm text-green-900">
+                    <strong>✓ Approved:</strong> Your profile has been verified and approved! You can now list your services and start accepting bookings.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {verificationStatus === 'rejected' && (
+              <Card className="bg-red-50 border-red-200">
+                <CardContent className="pt-6">
+                  <p className="text-sm text-red-900">
+                    <strong>✗ Rejected:</strong> Your verification was not approved. Please email sservly@gmail.com for details and resubmit if needed.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Add Service Dialog */}
+      <Dialog open={showAddService} onOpenChange={setShowAddService}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add New Service</DialogTitle>
+            <DialogDescription>Create a new service offering for your business</DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="service-name">Service Name</Label>
+              <Input 
+                id="service-name"
+                placeholder="e.g., Deep Cleaning" 
+                value={newService.title}
+                onChange={(e) => setNewService({ ...newService, title: e.target.value })}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="service-desc">Description</Label>
+              <Textarea 
+                id="service-desc"
+                placeholder="Describe what's included in this service" 
+                rows={3}
+                value={newService.description}
+                onChange={(e) => setNewService({ ...newService, description: e.target.value })}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="service-price">Price ($)</Label>
+                <Input 
+                  id="service-price"
+                  type="number" 
+                  placeholder="0.00" 
+                  value={newService.price}
+                  onChange={(e) => setNewService({ ...newService, price: e.target.value })}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="price-unit">Price Unit</Label>
+                <Select value={newService.priceUnit} onValueChange={(value) => setNewService({ ...newService, priceUnit: value })}>
+                  <SelectTrigger id="price-unit">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hour">Per Hour</SelectItem>
+                    <SelectItem value="job">Per Job</SelectItem>
+                    <SelectItem value="visit">Per Visit</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddService(false)}>Cancel</Button>
+            <Button onClick={handleAddService}>Add Service</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
