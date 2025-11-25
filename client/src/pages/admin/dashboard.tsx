@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
+import { Link } from "wouter";
 import { mockUsers, mockProviders, mockBookings } from "@/lib/data";
-import { adminAPI } from "@/lib/api";
+import { adminAPI, documentAPI } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Briefcase, CalendarCheck, ShieldAlert, DollarSign, Percent } from "lucide-react";
+import { Users, Briefcase, CalendarCheck, ShieldAlert, DollarSign, Percent, CheckCircle } from "lucide-react";
 import AdminPricing from "./pricing";
 
 interface PlatformSettings {
@@ -19,9 +20,11 @@ interface PlatformSettings {
 export default function AdminDashboard() {
   const [settings, setSettings] = useState<PlatformSettings | null>(null);
   const [loadingSettings, setLoadingSettings] = useState(true);
+  const [pendingProviderCount, setPendingProviderCount] = useState(0);
 
   useEffect(() => {
     fetchSettings();
+    fetchPendingCount();
   }, []);
 
   const fetchSettings = async () => {
@@ -32,6 +35,15 @@ export default function AdminDashboard() {
       console.error("Failed to fetch settings:", error);
     } finally {
       setLoadingSettings(false);
+    }
+  };
+
+  const fetchPendingCount = async () => {
+    try {
+      const providers = await documentAPI.getPendingProviders();
+      setPendingProviderCount(providers.length);
+    } catch (error) {
+      console.error("Failed to fetch pending count:", error);
     }
   };
 
@@ -71,15 +83,18 @@ export default function AdminDashboard() {
             <div className="text-2xl font-bold">{mockBookings.length}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Reviews</CardTitle>
-            <ShieldAlert className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-          </CardContent>
-        </Card>
+        <Link href="/admin/verification">
+          <Card className="cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending Verifications</CardTitle>
+              <ShieldAlert className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{pendingProviderCount}</div>
+              <p className="text-xs text-muted-foreground mt-1">Provider approvals needed</p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Current Pricing Overview */}
