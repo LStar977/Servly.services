@@ -58,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const newUser = await authAPI.signup(userData);
       console.log("Signup successful:", newUser);
       setUser(newUser);
+      return newUser;
     } catch (error) {
       console.error("Signup error:", error);
       throw error;

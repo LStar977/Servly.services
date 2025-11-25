@@ -126,8 +126,13 @@ export async function setupAuth(app: Express) {
       failureRedirect: "/auth/login",
     })(req, res, (err: any) => {
       if (err) return next(err);
-      // After OAuth, redirect to login page to enter email/password
-      res.redirect('/auth/login');
+      // After successful OAuth, redirect based on user role
+      const user = req.user as any;
+      if (user?.role === 'admin' || user?.oauthRole === 'admin') {
+        res.redirect('/admin/dashboard');
+      } else {
+        res.redirect('/');
+      }
     });
   });
 
