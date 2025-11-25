@@ -426,6 +426,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Submit provider verification (provider applies with documents)
+  app.post("/api/providers/:providerId/submit-verification", isAuthenticated, async (req, res) => {
+    try {
+      const provider = await storage.submitForVerification(req.params.providerId);
+      if (!provider) {
+        res.status(404).json({ message: "Provider not found" });
+        return;
+      }
+      res.json({ provider });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   // Notifications
   app.get("/api/notifications/preferences", isAuthenticated, async (req, res) => {
     try {

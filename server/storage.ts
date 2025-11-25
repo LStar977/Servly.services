@@ -69,6 +69,7 @@ export interface IStorage {
   uploadDocument(document: InsertDocument): Promise<Document>;
   getDocumentsByProviderId(providerId: string): Promise<Document[]>;
   getPendingProviders(): Promise<Array<ProviderProfile & { documentCount: number }>>;
+  submitForVerification(providerId: string): Promise<ProviderProfile | undefined>;
   approveProvider(providerId: string): Promise<ProviderProfile | undefined>;
   rejectProvider(providerId: string): Promise<ProviderProfile | undefined>;
 
@@ -398,7 +399,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPendingProviders(): Promise<Array<ProviderProfile & { documentCount: number }>> {
-    const pending = await db.select().from(providerProfiles).where(eq(providerProfiles.verificationStatus, "pending"));
+    const pending = await db.select().from(providerProfiles).where(
+      or(
+        eq(providerProfiles.verificationStatus, "pending"),
+        eq(providerProfiles.verificationStatus, "submitted")
+      )
+    );
     
     const result = await Promise.all(
       pending.map(async (provider) => {
@@ -421,6 +427,14 @@ export class DatabaseStorage implements IStorage {
   async rejectProvider(providerId: string): Promise<ProviderProfile | undefined> {
     const result = await db.update(providerProfiles)
       .set({ verificationStatus: "rejected" })
+      .where(eq(providerProfiles.id, providerId))
+      .returning();
+    return result[0];
+  }
+
+  async submitForVerification(providerId: string): Promise<ProviderProfile | undefined> {
+    const result = await db.update(providerProfiles)
+      .set({ verificationStatus: "submitted" })
       .where(eq(providerProfiles.id, providerId))
       .returning();
     return result[0];
