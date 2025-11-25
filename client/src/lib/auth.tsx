@@ -42,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const loggedInUser = await authAPI.login(email, password);
       console.log("Login successful:", loggedInUser);
       setUser(loggedInUser);
+      return loggedInUser;
     } catch (error) {
       console.error("Login error:", error);
       throw error;
