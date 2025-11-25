@@ -1,8 +1,16 @@
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { useAuth } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 import { Mail, CheckCircle2, AlertCircle, Lock, Building2, Wrench, Home, Shield, CreditCard } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default function ProviderRequirements() {
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const requirements = [
     {
       number: 1,
@@ -287,10 +295,43 @@ export default function ProviderRequirements() {
 
         {/* CTA Buttons */}
         <div className="flex justify-center gap-4 mt-12">
-          <Button size="lg" onClick={() => window.location.href = "/auth/signup"}>
-            Create your Account
+          <Button 
+            size="lg" 
+            disabled={isLoading}
+            onClick={async () => {
+              if (user) {
+                // If logged in, set role to provider
+                setIsLoading(true);
+                try {
+                  const response = await fetch(`/api/users/${user.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ role: 'provider' }),
+                  });
+                  if (!response.ok) throw new Error('Failed to update role');
+                  toast({
+                    title: 'Welcome to Servly!',
+                    description: 'Redirecting to your provider dashboard...',
+                  });
+                  setLocation('/provider/dashboard');
+                } catch (error) {
+                  toast({
+                    title: 'Error',
+                    description: 'Could not set provider role',
+                    variant: 'destructive',
+                  });
+                  setIsLoading(false);
+                }
+              } else {
+                // If not logged in, go to signup
+                setLocation('/auth/signup');
+              }
+            }}
+          >
+            {user ? 'Get Started as Provider' : 'Create Your Account'}
           </Button>
-          <Button size="lg" variant="outline" onClick={() => window.location.href = "/"}>
+          <Button size="lg" variant="outline" onClick={() => setLocation("/")}>
             Back to Home
           </Button>
         </div>
