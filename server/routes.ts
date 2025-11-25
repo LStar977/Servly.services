@@ -99,27 +99,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!email || !password) {
         console.log("[LOGIN] Missing email or password");
-        return res.status(400).json({ message: "Email and password are required" });
+        res.status(400).json({ message: "Email and password are required" });
+        return;
       }
       
-      let user;
-      try {
-        user = await storage.getUserByEmail(email);
-      } catch (dbError: any) {
-        console.error("[LOGIN] Database error:", dbError);
-        return res.status(500).json({ message: "Database error: " + (dbError.message || "Unknown error") });
-      }
-      
+      const user = await storage.getUserByEmail(email);
       console.log("[LOGIN] User found:", user ? "Yes" : "No");
       
       if (!user) {
         console.log("[LOGIN] No user found with email:", email);
-        return res.status(401).json({ message: "Invalid credentials" });
+        res.status(401).json({ message: "Invalid credentials" });
+        return;
       }
       
       if (!user.password) {
         console.log("[LOGIN] User has no password hash (OAuth user?)");
-        return res.status(401).json({ message: "This account uses OAuth login. Please use Google/Apple signin instead." });
+        res.status(401).json({ message: "This account uses OAuth login. Please use Google/Apple signin instead." });
+        return;
       }
       
       console.log("[LOGIN] Comparing passwords...");
@@ -128,22 +124,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!isValid) {
         console.log("[LOGIN] Password mismatch");
-        return res.status(401).json({ message: "Invalid credentials" });
+        res.status(401).json({ message: "Invalid credentials" });
+        return;
       }
       
       console.log("[LOGIN] Password valid, establishing session...");
       req.login(user, (err) => {
         if (err) {
           console.error("[LOGIN] Session error:", err);
-          return res.status(400).json({ message: "Failed to establish session" });
+          res.status(400).json({ message: "Failed to establish session" });
+          return;
         }
         console.log("[LOGIN] Session established successfully");
         const safeUser = { ...user, password: undefined };
-        return res.json({ user: safeUser });
+        res.json({ user: safeUser });
       });
     } catch (error: any) {
       console.error("[LOGIN] Unexpected error:", error);
-      return res.status(500).json({ message: "Server error: " + (error.message || "Unknown error") });
+      res.status(400).json({ message: error.message || "Login failed" });
     }
   });
 
@@ -421,8 +419,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(403).json({ message: "Admin access required" });
         return;
       }
-      const { reason } = req.body;
-      const provider = await storage.rejectProvider(req.params.providerId, reason || "");
+      const provider = await storage.rejectProvider(req.params.providerId);
       res.json({ provider });
     } catch (error: any) {
       res.status(400).json({ message: error.message });

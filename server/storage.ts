@@ -91,13 +91,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    try {
-      const result = await db.select().from(users).where(eq(users.email, email));
-      return result[0];
-    } catch (error) {
-      console.error("Database error in getUserByEmail:", error);
-      throw error;
-    }
+    const result = await db.select().from(users).where(eq(users.email, email));
+    return result[0];
   }
 
   async createUser(user: InsertUser): Promise<User> {
@@ -423,31 +418,11 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async rejectProvider(providerId: string, reason?: string): Promise<ProviderProfile | undefined> {
+  async rejectProvider(providerId: string): Promise<ProviderProfile | undefined> {
     const result = await db.update(providerProfiles)
       .set({ verificationStatus: "rejected" })
       .where(eq(providerProfiles.id, providerId))
       .returning();
-    
-    // Send notification to provider about rejection
-    if (result[0]) {
-      try {
-        const provider = result[0];
-        const message = reason 
-          ? `Your provider application has been declined. Reason: ${reason}` 
-          : "Your provider application has been declined.";
-        
-        await this.createNotification({
-          userId: provider.userId,
-          type: "provider_rejected",
-          message,
-          channel: "in-app",
-        });
-      } catch (error) {
-        console.error("Failed to create notification:", error);
-      }
-    }
-    
     return result[0];
   }
 

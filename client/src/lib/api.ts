@@ -354,12 +354,12 @@ export const documentAPI = {
     return data.provider;
   },
 
-  rejectProvider: async (providerId: string, reason?: string) => {
+  rejectProvider: async (providerId: string) => {
     const res = await fetch(`${API_BASE}/admin/verification/reject/${providerId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ reason: reason || '' }),
+      body: JSON.stringify({}),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to reject provider');

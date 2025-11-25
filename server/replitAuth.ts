@@ -81,31 +81,13 @@ export async function setupAuth(app: Express) {
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
     verified: passport.AuthenticateCallback
   ) => {
-    try {
-      const claims = tokens.claims();
-      if (!claims) {
-        return verified(new Error("No claims in token"));
-      }
-      
-      const user: any = {
-        id: claims.sub,
-        email: claims.email,
-        name: `${claims.first_name || ''} ${claims.last_name || ''}`.trim(),
-      };
-      updateUserSession(user, tokens);
-      
-      try {
-        await upsertUser(claims, 'customer');
-      } catch (dbError: any) {
-        console.error("Database error during upsertUser:", dbError);
-        // Continue anyway, user object is still valid
-      }
-      
-      verified(null, user);
-    } catch (err: any) {
-      console.error("OAuth verify error:", err);
-      verified(err);
-    }
+    const user: any = {};
+    updateUserSession(user, tokens);
+    const claims = tokens.claims();
+    // Store role in user object to be serialized
+    user.oauthRole = 'customer';
+    await upsertUser(claims, 'customer');
+    verified(null, user);
   };
 
   const registeredStrategies = new Set<string>();
@@ -143,25 +125,9 @@ export async function setupAuth(app: Express) {
     passport.authenticate(`replitauth:${req.hostname}`, {
       failureRedirect: "/auth/login",
     })(req, res, (err: any) => {
-      if (err) {
-        console.error("Passport authenticate error:", err);
-        return res.redirect("/auth/login");
-      }
-      
-      if (!req.isAuthenticated()) {
-        console.error("User not authenticated after OAuth callback");
-        return res.redirect("/auth/login");
-      }
-      
-      // After successful OAuth, redirect based on user role
-      const user = req.user as any;
-      console.log("OAuth success, user:", { id: user?.id, email: user?.email });
-      
-      if (user?.role === 'admin' || user?.oauthRole === 'admin') {
-        res.redirect('/admin/dashboard');
-      } else {
-        res.redirect('/');
-      }
+      if (err) return next(err);
+      // After OAuth, redirect to login page to enter email/password
+      res.redirect('/auth/login');
     });
   });
 
