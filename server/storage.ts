@@ -440,9 +440,8 @@ export class DatabaseStorage implements IStorage {
         await this.createNotification({
           userId: provider.userId,
           type: "provider_rejected",
-          title: "Application Declined",
           message,
-          relatedId: providerId,
+          channel: "in-app",
         });
       } catch (error) {
         console.error("Failed to create notification:", error);
