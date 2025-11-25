@@ -50,20 +50,27 @@ export default function ProviderDashboard() {
     
     const loadData = async () => {
       try {
-        const [bookingsData, reviewsData, payoutsData, profileData, docsData] = await Promise.all([
-          providerAPI.getBookings(providerId),
-          reviewAPI.getByProviderId(providerId),
-          providerAPI.getPayouts(providerId),
-          providerAPI.getById(providerId),
-          documentAPI.getByProviderId(providerId),
+        const profileData = await providerAPI.getById(providerId);
+        if (!profileData) {
+          setIsLoadingBookings(false);
+          return;
+        }
+        
+        // Use the actual provider profile ID for document fetching
+        const actualProviderId = profileData.id;
+        
+        const [bookingsData, reviewsData, payoutsData, docsData] = await Promise.all([
+          providerAPI.getBookings(actualProviderId),
+          reviewAPI.getByProviderId(actualProviderId),
+          providerAPI.getPayouts(actualProviderId),
+          documentAPI.getByProviderId(actualProviderId),
         ]);
+        
         setBookings(bookingsData);
         setReviews(reviewsData);
         setPayouts(payoutsData);
-        if (profileData) {
-          setProviderProfile(profileData);
-          setVerificationStatus(profileData.verificationStatus || 'pending');
-        }
+        setProviderProfile(profileData);
+        setVerificationStatus(profileData.verificationStatus || 'pending');
         
         // Load documents and sync upload status
         setDocuments(docsData);
@@ -976,7 +983,11 @@ export default function ProviderDashboard() {
                     onClick={async () => {
                       setIsSubmittingVerification(true);
                       try {
-                        await documentAPI.submitForVerification(providerId);
+                        const actualProviderId = providerProfile?.id;
+                        if (!actualProviderId) {
+                          throw new Error('Provider profile not found');
+                        }
+                        await documentAPI.submitForVerification(actualProviderId);
                         toast({
                           title: 'Application Submitted',
                           description: 'Your verification request has been sent to our admin team. You will be notified within 3-5 business days.',
