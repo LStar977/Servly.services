@@ -995,15 +995,18 @@ export default function ProviderDashboard() {
                         if (!actualProviderId) {
                           throw new Error('Provider profile not found');
                         }
-                        await documentAPI.submitForVerification(actualProviderId);
+                        const result = await documentAPI.submitForVerification(actualProviderId);
+                        
+                        // Show success popup
                         toast({
-                          title: 'Application Submitted',
+                          title: '✅ Application Submitted Successfully!',
                           description: 'Your verification request has been sent to our admin team. You will be notified within 3-5 business days.',
                         });
                         setVerificationStatus('submitted');
                       } catch (error) {
+                        console.error('Submission error:', error);
                         toast({
-                          title: 'Submission Failed',
+                          title: '❌ Submission Failed',
                           description: error instanceof Error ? error.message : 'Could not submit verification',
                           variant: 'destructive',
                         });
