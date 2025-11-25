@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Loader2, Apple, Mail, CheckCircle2 } from "lucide-react";
+import { Loader2, Apple, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
@@ -18,30 +18,10 @@ const formSchema = z.object({
 });
 
 export default function Login() {
-  const { login, isLoading, user } = useAuth();
+  const { login, isLoading } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [error, setError] = useState("");
-  const [isRedirecting, setIsRedirecting] = useState(false);
-  const [redirectRole, setRedirectRole] = useState<string | null>(null);
-
-  // Check if user is already logged in (e.g., via OAuth) and redirect based on role
-  useEffect(() => {
-    if (user) {
-      // User is authenticated
-      if (user.role === 'admin') {
-        setRedirectRole('admin');
-        setIsRedirecting(true);
-        setTimeout(() => {
-          setLocation("/admin/dashboard");
-        }, 1500);
-      } else if (user.role === 'provider') {
-        setLocation("/provider/dashboard");
-      } else if (user.role === 'customer') {
-        setLocation("/");
-      }
-    }
-  }, [user, setLocation]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,15 +33,8 @@ export default function Login() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const loggedInUser = await login(values.email, values.password);
-      if (loggedInUser?.role === 'admin') {
-        setIsRedirecting(true);
-        setTimeout(() => {
-          setLocation("/admin/dashboard");
-        }, 1500);
-      } else {
-        setLocation("/");
-      }
+      await login(values.email, values.password);
+      setLocation("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid credentials");
     }
@@ -71,27 +44,6 @@ export default function Login() {
     // Redirect to Replit Auth which handles Google, Apple, GitHub, etc.
     window.location.href = "/api/login";
   };
-
-  if (isRedirecting && redirectRole === 'admin') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
-        <Card className="w-full max-w-md border-0 shadow-xl bg-card/50 backdrop-blur-xl">
-          <CardContent className="pt-12 pb-12 text-center space-y-4">
-            <div className="flex justify-center mb-4">
-              <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center animate-pulse">
-                <CheckCircle2 className="h-8 w-8 text-green-600" />
-              </div>
-            </div>
-            <h2 className="text-2xl font-bold">Welcome Admin!</h2>
-            <p className="text-muted-foreground">Redirecting to your dashboard...</p>
-            <div className="pt-4 flex justify-center">
-              <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
