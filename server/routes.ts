@@ -419,7 +419,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(403).json({ message: "Admin access required" });
         return;
       }
-      const provider = await storage.rejectProvider(req.params.providerId);
+      const { reason } = req.body;
+      const provider = await storage.rejectProvider(req.params.providerId, reason || "");
       res.json({ provider });
     } catch (error: any) {
       res.status(400).json({ message: error.message });

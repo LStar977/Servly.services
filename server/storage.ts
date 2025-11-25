@@ -418,11 +418,32 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async rejectProvider(providerId: string): Promise<ProviderProfile | undefined> {
+  async rejectProvider(providerId: string, reason?: string): Promise<ProviderProfile | undefined> {
     const result = await db.update(providerProfiles)
       .set({ verificationStatus: "rejected" })
       .where(eq(providerProfiles.id, providerId))
       .returning();
+    
+    // Send notification to provider about rejection
+    if (result[0]) {
+      try {
+        const provider = result[0];
+        const message = reason 
+          ? `Your provider application has been declined. Reason: ${reason}` 
+          : "Your provider application has been declined.";
+        
+        await this.createNotification({
+          userId: provider.userId,
+          type: "provider_rejected",
+          title: "Application Declined",
+          message,
+          relatedId: providerId,
+        });
+      } catch (error) {
+        console.error("Failed to create notification:", error);
+      }
+    }
+    
     return result[0];
   }
 

@@ -4,6 +4,8 @@ import type { ProviderProfile } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, FileText, Clock, ChevronDown, ChevronUp, Download } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 
 export default function VerificationPage() {
@@ -11,6 +13,10 @@ export default function VerificationPage() {
   const [loading, setLoading] = useState(true);
   const [expandedProviderId, setExpandedProviderId] = useState<string | null>(null);
   const [providerDocuments, setProviderDocuments] = useState<Record<string, any[]>>({});
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [rejectingProviderId, setRejectingProviderId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [isRejecting, setIsRejecting] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -47,19 +53,33 @@ export default function VerificationPage() {
     }
   };
 
-  const handleReject = async (providerId: string) => {
+  const openRejectDialog = (providerId: string) => {
+    setRejectingProviderId(providerId);
+    setRejectReason("");
+    setShowRejectDialog(true);
+  };
+
+  const confirmReject = async () => {
+    if (!rejectingProviderId) return;
+    
+    setIsRejecting(true);
     try {
-      await documentAPI.rejectProvider(providerId);
+      await documentAPI.rejectProvider(rejectingProviderId, rejectReason);
       toast({
         title: "Provider rejected",
-        description: "Provider has been rejected",
+        description: "Provider has been rejected and notified",
       });
+      setShowRejectDialog(false);
+      setRejectingProviderId(null);
+      setRejectReason("");
       loadPendingProviders();
     } catch (error) {
       toast({
         title: "Failed to reject provider",
         variant: "destructive",
       });
+    } finally {
+      setIsRejecting(false);
     }
   };
 
@@ -196,18 +216,18 @@ export default function VerificationPage() {
                 <div className="flex gap-2 justify-end pt-2">
                   <Button
                     variant="outline"
-                    onClick={() => handleReject(provider.id)}
+                    onClick={() => openRejectDialog(provider.id)}
                     data-testid={`reject-button-${provider.id}`}
                   >
                     <XCircle className="h-4 w-4 mr-2" />
-                    Reject
+                    Decline
                   </Button>
                   <Button
                     onClick={() => handleApprove(provider.id)}
                     data-testid={`approve-button-${provider.id}`}
                   >
                     <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Approve
+                    Confirm
                   </Button>
                 </div>
               </CardContent>
@@ -215,6 +235,49 @@ export default function VerificationPage() {
           ))}
         </div>
       )}
+
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Decline Provider Application</DialogTitle>
+            <DialogDescription>
+              Send a message to the provider explaining why their application was declined.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Decline Reason</label>
+              <Textarea
+                placeholder="Please explain why you are declining this provider application. This message will be sent to their account..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                className="min-h-[120px]"
+                data-testid="reject-reason-textarea"
+              />
+              <p className="text-xs text-muted-foreground">
+                {rejectReason.length} characters
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowRejectDialog(false)}
+              disabled={isRejecting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmReject}
+              disabled={isRejecting || !rejectReason.trim()}
+              data-testid="confirm-reject-button"
+            >
+              {isRejecting ? "Sending..." : "Send Decline"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
