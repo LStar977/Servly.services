@@ -46,7 +46,7 @@ export function CategoryProvidersScreen({ route, navigation }: Props) {
       )}
       ListEmptyComponent={
         <EmptyState
-          icon="search"
+          icon="search-outline"
           title="No providers found"
           message={`We don't have any ${categoryName} providers in your area yet.`}
         />

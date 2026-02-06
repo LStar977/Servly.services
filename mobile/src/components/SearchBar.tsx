@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { colors, spacing, borderRadius, typography } from '../theme';
 
 interface SearchBarProps {
@@ -20,7 +20,7 @@ export function SearchBar({
 }: SearchBarProps) {
   return (
     <View style={styles.container}>
-      <Icon name="search" size={16} color={colors.textTertiary} style={styles.icon} />
+      <Icon name="search-outline" size={18} color={colors.textTertiary} style={styles.icon} />
       <TextInput
         style={styles.input}
         value={value}
@@ -35,7 +35,7 @@ export function SearchBar({
       />
       {value.length > 0 && (
         <TouchableOpacity onPress={() => onChangeText('')} style={styles.clearButton}>
-          <Icon name="times-circle" size={16} color={colors.textTertiary} />
+          <Icon name="close-circle" size={18} color={colors.textTertiary} />
         </TouchableOpacity>
       )}
     </View>

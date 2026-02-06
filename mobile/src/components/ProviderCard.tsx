@@ -1,26 +1,35 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import { View, Text, StyleSheet } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { Card } from './Card';
 import { StarRating } from './StarRating';
 import { Badge } from './Badge';
 import { ProviderProfile } from '../types';
-import { colors, spacing, borderRadius, typography } from '../theme';
+import { colors, categoryColors, defaultCategoryColor, spacing, borderRadius, typography } from '../theme';
+import { categories } from '../mock/data';
 
 interface ProviderCardProps {
   provider: ProviderProfile;
   onPress: () => void;
 }
 
+function getCategoryInfo(provider: ProviderProfile) {
+  const catId = provider.categories[0];
+  const cat = categories.find(c => c.id === catId);
+  const catColor = (catId && categoryColors[catId]) || defaultCategoryColor;
+  return { icon: cat?.icon ?? 'briefcase-outline', color: catColor };
+}
+
 export function ProviderCard({ provider, onPress }: ProviderCardProps) {
   const lowestPrice = provider.services.length
     ? Math.min(...provider.services.map(s => s.price))
     : 0;
+  const { icon, color } = getCategoryInfo(provider);
 
   return (
     <Card onPress={onPress} padded={false} style={styles.card}>
-      <View style={styles.imagePlaceholder}>
-        <Icon name="briefcase" size={32} color={colors.primary[300]} />
+      <View style={[styles.imagePlaceholder, { backgroundColor: color.bg }]}>
+        <Icon name={icon} size={36} color={color.icon} />
       </View>
       <View style={styles.content}>
         <Text style={styles.name} numberOfLines={1}>
@@ -33,7 +42,7 @@ export function ProviderCard({ provider, onPress }: ProviderCardProps) {
           </Text>
         </View>
         <View style={styles.metaRow}>
-          <Icon name="map-marker" size={12} color={colors.textSecondary} />
+          <Icon name="location-outline" size={13} color={colors.textSecondary} />
           <Text style={styles.metaText}>{provider.city}</Text>
         </View>
         <View style={styles.footer}>
@@ -56,7 +65,6 @@ const styles = StyleSheet.create({
   },
   imagePlaceholder: {
     height: 140,
-    backgroundColor: colors.primary[50],
     borderTopLeftRadius: borderRadius.xl,
     borderTopRightRadius: borderRadius.xl,
     alignItems: 'center',

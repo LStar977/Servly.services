@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { Button, Card, Badge } from '../../components';
 import { demoAPI } from '../../mock/api';
 import { mockProviders } from '../../mock/data';
@@ -81,12 +81,12 @@ export function BookingDetailScreen({ route, navigation }: Props) {
       {/* Details */}
       <Card style={styles.card}>
         <Text style={styles.cardTitle}>Booking Details</Text>
-        <DetailRow icon="calendar" label="Date & Time" value={format(new Date(booking.dateTime), 'EEEE, MMM d, yyyy · h:mm a')} />
-        <DetailRow icon="map-marker" label="Address" value={booking.address} />
+        <DetailRow icon="calendar-outline" label="Date & Time" value={format(new Date(booking.dateTime), 'EEEE, MMM d, yyyy · h:mm a')} />
+        <DetailRow icon="location-outline" label="Address" value={booking.address} />
         {booking.notes ? (
-          <DetailRow icon="sticky-note-o" label="Notes" value={booking.notes} />
+          <DetailRow icon="document-text-outline" label="Notes" value={booking.notes} />
         ) : null}
-        <DetailRow icon="credit-card" label="Payment" value={booking.paymentStatus === 'paid' ? 'Paid' : 'Pending'} />
+        <DetailRow icon="card-outline" label="Payment" value={booking.paymentStatus === 'paid' ? 'Paid' : 'Pending'} />
       </Card>
 
       {/* Actions */}
@@ -120,13 +120,13 @@ function DetailRow({ icon, label, value }: { icon: string; label: string; value:
 
 function statusIcon(status: string) {
   switch (status) {
-    case 'completed': return 'check-circle';
+    case 'completed': return 'checkmark-circle';
     case 'confirmed':
     case 'accepted': return 'thumbs-up';
-    case 'pending': return 'clock-o';
+    case 'pending': return 'time-outline';
     case 'cancelled':
-    case 'declined': return 'times-circle';
-    default: return 'info-circle';
+    case 'declined': return 'close-circle';
+    default: return 'information-circle';
   }
 }
 

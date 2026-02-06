@@ -2,14 +2,14 @@
 import { User, Category, ProviderProfile, Booking, Review, Conversation, Message } from '../types';
 
 export const categories: Category[] = [
-  { id: 'cat_1', name: 'Home Cleaning', slug: 'cleaning', icon: 'broom' },
-  { id: 'cat_4', name: 'Lawn Care', slug: 'landscaping', icon: 'leaf' },
-  { id: 'cat_6', name: 'Auto Detailing', slug: 'automotive', icon: 'car' },
-  { id: 'cat_7', name: 'Pet Services', slug: 'pets', icon: 'paw' },
-  { id: 'cat_8', name: 'Snow Removal', slug: 'snow', icon: 'snowflake-o' },
-  { id: 'cat_2', name: 'Plumbing', slug: 'plumbing', icon: 'wrench' },
-  { id: 'cat_3', name: 'Electrical', slug: 'electrical', icon: 'bolt' },
-  { id: 'cat_5', name: 'Moving', slug: 'moving', icon: 'truck' },
+  { id: 'cat_1', name: 'Home Cleaning', slug: 'cleaning', icon: 'brush-outline' },
+  { id: 'cat_4', name: 'Lawn Care', slug: 'landscaping', icon: 'leaf-outline' },
+  { id: 'cat_6', name: 'Auto Detailing', slug: 'automotive', icon: 'car-sport-outline' },
+  { id: 'cat_7', name: 'Pet Services', slug: 'pets', icon: 'paw-outline' },
+  { id: 'cat_8', name: 'Snow Removal', slug: 'snow', icon: 'snow-outline' },
+  { id: 'cat_2', name: 'Plumbing', slug: 'plumbing', icon: 'build-outline' },
+  { id: 'cat_3', name: 'Electrical', slug: 'electrical', icon: 'flash-outline' },
+  { id: 'cat_5', name: 'Moving', slug: 'moving', icon: 'cube-outline' },
 ];
 
 export const demoCustomer: User = {

@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { Button, Card } from '../../components';
 import { useAuth } from '../../hooks/useAuth';
 import { demoAPI } from '../../mock/api';
@@ -134,7 +134,7 @@ export function NewBookingScreen({ route, navigation }: Props) {
                 </Text>
               </View>
               {selectedService?.id === svc.id && (
-                <Icon name="check-circle" size={20} color={colors.primary[600]} />
+                <Icon name="checkmark-circle" size={20} color={colors.primary[600]} />
               )}
             </TouchableOpacity>
           ))}
