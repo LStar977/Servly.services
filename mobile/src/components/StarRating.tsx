@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { colors, spacing } from '../theme';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { colors } from '../theme';
 
 interface StarRatingProps {
   rating: number;
@@ -22,9 +22,9 @@ export function StarRating({
     if (i < fullStars) {
       stars.push(<Icon key={i} name="star" size={size} color={color} />);
     } else if (i === fullStars && hasHalf) {
-      stars.push(<Icon key={i} name="star-half-o" size={size} color={color} />);
+      stars.push(<Icon key={i} name="star-half-outline" size={size} color={color} />);
     } else {
-      stars.push(<Icon key={i} name="star-o" size={size} color={colors.gray[300]} />);
+      stars.push(<Icon key={i} name="star-outline" size={size} color={colors.gray[300]} />);
     }
   }
 

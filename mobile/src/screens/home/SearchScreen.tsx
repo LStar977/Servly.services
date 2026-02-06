@@ -57,6 +57,7 @@ export function SearchScreen({ navigation }: Props) {
                 key={cat.id}
                 name={cat.name}
                 icon={cat.icon}
+                categoryId={cat.id}
                 onPress={() =>
                   navigation.navigate('ProviderDetail', {
                     providerId: '', // Would navigate to category in full app
@@ -81,7 +82,7 @@ export function SearchScreen({ navigation }: Props) {
           )}
           ListEmptyComponent={
             <EmptyState
-              icon="search"
+              icon="search-outline"
               title="No results"
               message={`No providers match "${query}". Try a different search.`}
             />

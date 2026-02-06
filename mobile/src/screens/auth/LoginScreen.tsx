@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { Button } from '../../components';
 import { useAuth } from '../../hooks/useAuth';
 import { colors, spacing, borderRadius, typography } from '../../theme';
@@ -51,7 +51,7 @@ export function LoginScreen({ navigation }: Props) {
         keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <Icon name="bolt" size={32} color={colors.white} />
+            <Icon name="flash" size={32} color={colors.white} />
           </View>
           <Text style={styles.title}>Welcome to Servly</Text>
           <Text style={styles.subtitle}>
@@ -61,7 +61,7 @@ export function LoginScreen({ navigation }: Props) {
 
         {isDemoMode && (
           <View style={styles.demoBanner}>
-            <Icon name="info-circle" size={16} color={colors.primary[700]} />
+            <Icon name="information-circle-outline" size={16} color={colors.primary[700]} />
             <Text style={styles.demoText}>Demo Mode - Tap below to explore</Text>
           </View>
         )}

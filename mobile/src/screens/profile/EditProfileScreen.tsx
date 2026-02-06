@@ -7,7 +7,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { Button } from '../../components';
 import { useAuth } from '../../hooks/useAuth';
 import { colors, spacing, borderRadius, typography } from '../../theme';
@@ -27,7 +27,7 @@ export function EditProfileScreen() {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.avatarSection}>
         <View style={styles.avatar}>
-          <Icon name="user" size={32} color={colors.primary[400]} />
+          <Icon name="person" size={32} color={colors.primary[400]} />
         </View>
         <Text style={styles.changePhoto}>Change Photo</Text>
       </View>

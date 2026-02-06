@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { Card, Badge, Button } from '../../components';
 import { useAuth } from '../../hooks/useAuth';
 import { colors, spacing, borderRadius, typography } from '../../theme';
@@ -31,7 +31,7 @@ export function ProfileScreen({ navigation }: Props) {
       {/* Profile Header */}
       <View style={styles.header}>
         <View style={styles.avatarLarge}>
-          <Icon name="user" size={36} color={colors.primary[400]} />
+          <Icon name="person" size={36} color={colors.primary[400]} />
         </View>
         <Text style={styles.name}>{user?.name ?? 'User'}</Text>
         <Text style={styles.email}>{user?.email ?? ''}</Text>
@@ -41,7 +41,7 @@ export function ProfileScreen({ navigation }: Props) {
       {isDemoMode && (
         <Card style={styles.demoCard}>
           <View style={styles.demoRow}>
-            <Icon name="info-circle" size={16} color={colors.primary[600]} />
+            <Icon name="information-circle-outline" size={16} color={colors.primary[600]} />
             <Text style={styles.demoText}>
               You're using demo mode. Profile changes won't persist.
             </Text>
@@ -51,16 +51,16 @@ export function ProfileScreen({ navigation }: Props) {
 
       {/* Menu Items */}
       <View style={styles.menuSection}>
-        <MenuItem icon="pencil" label="Edit Profile" onPress={() => navigation.navigate('EditProfile')} />
-        <MenuItem icon="bell" label="Notifications" onPress={() => {}} />
-        <MenuItem icon="credit-card" label="Payment Methods" onPress={() => {}} />
-        <MenuItem icon="history" label="Booking History" onPress={() => navigation.getParent()?.navigate('BookingsTab')} />
+        <MenuItem icon="create-outline" label="Edit Profile" onPress={() => navigation.navigate('EditProfile')} />
+        <MenuItem icon="notifications-outline" label="Notifications" onPress={() => {}} />
+        <MenuItem icon="card-outline" label="Payment Methods" onPress={() => {}} />
+        <MenuItem icon="time-outline" label="Booking History" onPress={() => navigation.getParent()?.navigate('BookingsTab')} />
       </View>
 
       <View style={styles.menuSection}>
-        <MenuItem icon="cog" label="Settings" onPress={() => navigation.navigate('Settings')} />
-        <MenuItem icon="question-circle" label="Help & Support" onPress={() => {}} />
-        <MenuItem icon="file-text-o" label="Terms & Privacy" onPress={() => {}} />
+        <MenuItem icon="settings-outline" label="Settings" onPress={() => navigation.navigate('Settings')} />
+        <MenuItem icon="help-circle-outline" label="Help & Support" onPress={() => {}} />
+        <MenuItem icon="document-text-outline" label="Terms & Privacy" onPress={() => {}} />
       </View>
 
       <View style={styles.logoutSection}>
@@ -82,7 +82,7 @@ function MenuItem({ icon, label, onPress }: { icon: string; label: string; onPre
     <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
       <Icon name={icon} size={18} color={colors.textSecondary} style={styles.menuIcon} />
       <Text style={styles.menuLabel}>{label}</Text>
-      <Icon name="chevron-right" size={12} color={colors.textTertiary} />
+      <Icon name="chevron-forward" size={12} color={colors.textTertiary} />
     </TouchableOpacity>
   );
 }

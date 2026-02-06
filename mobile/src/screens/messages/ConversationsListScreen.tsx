@@ -8,7 +8,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { EmptyState } from '../../components';
 import { useAuth } from '../../hooks/useAuth';
 import { demoAPI } from '../../mock/api';
@@ -67,7 +67,7 @@ export function ConversationsListScreen({ navigation }: Props) {
               })
             }>
             <View style={styles.avatar}>
-              <Icon name="user" size={18} color={colors.primary[400]} />
+              <Icon name="person-outline" size={18} color={colors.primary[400]} />
             </View>
             <View style={styles.convInfo}>
               <View style={styles.convHeader}>
@@ -92,7 +92,7 @@ export function ConversationsListScreen({ navigation }: Props) {
       }}
       ListEmptyComponent={
         <EmptyState
-          icon="comments-o"
+          icon="chatbubbles-outline"
           title="No messages"
           message="When you message a provider, your conversations will appear here."
         />

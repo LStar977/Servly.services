@@ -7,7 +7,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { Card, Badge, EmptyState } from '../../components';
 import { useAuth } from '../../hooks/useAuth';
 import { demoAPI } from '../../mock/api';
@@ -75,7 +75,7 @@ export function BookingsListScreen({ navigation }: Props) {
     return (
       <View style={styles.container}>
         <EmptyState
-          icon="calendar"
+          icon="calendar-outline"
           title="No bookings yet"
           message="When you book a service, it will appear here."
           actionLabel="Browse Services"
@@ -103,7 +103,7 @@ export function BookingsListScreen({ navigation }: Props) {
           style={styles.bookingCard}>
           <View style={styles.bookingHeader}>
             <View style={styles.bookingIcon}>
-              <Icon name="calendar-check-o" size={18} color={colors.primary[600]} />
+              <Icon name="calendar-outline" size={18} color={colors.primary[600]} />
             </View>
             <View style={styles.bookingInfo}>
               <Text style={styles.bookingProvider}>{getProviderName(item.providerId)}</Text>
@@ -113,13 +113,13 @@ export function BookingsListScreen({ navigation }: Props) {
           </View>
           <View style={styles.bookingMeta}>
             <View style={styles.metaItem}>
-              <Icon name="clock-o" size={12} color={colors.textTertiary} />
+              <Icon name="time-outline" size={12} color={colors.textTertiary} />
               <Text style={styles.metaText}>
                 {format(new Date(item.dateTime), 'MMM d, yyyy · h:mm a')}
               </Text>
             </View>
             <View style={styles.metaItem}>
-              <Icon name="map-marker" size={12} color={colors.textTertiary} />
+              <Icon name="location-outline" size={12} color={colors.textTertiary} />
               <Text style={styles.metaText} numberOfLines={1}>{item.address}</Text>
             </View>
           </View>

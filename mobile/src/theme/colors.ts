@@ -47,3 +47,17 @@ export const colors = {
   textSecondary: '#6B7280',
   textTertiary: '#9CA3AF',
 } as const;
+
+// Category-specific accent colors for icons and provider card headers
+export const categoryColors: Record<string, { bg: string; icon: string }> = {
+  cat_1: { bg: '#EDE9FE', icon: '#7C3AED' },  // Home Cleaning - Violet
+  cat_2: { bg: '#DBEAFE', icon: '#2563EB' },  // Plumbing - Blue
+  cat_3: { bg: '#FEF3C7', icon: '#D97706' },  // Electrical - Amber
+  cat_4: { bg: '#D1FAE5', icon: '#059669' },  // Lawn Care - Emerald
+  cat_5: { bg: '#FFE4E6', icon: '#E11D48' },  // Moving - Rose
+  cat_6: { bg: '#E0E7FF', icon: '#4338CA' },  // Auto Detailing - Indigo
+  cat_7: { bg: '#FCE7F3', icon: '#DB2777' },  // Pet Services - Pink
+  cat_8: { bg: '#E0F2FE', icon: '#0284C7' },  // Snow Removal - Sky
+};
+
+export const defaultCategoryColor = { bg: '#F3F4F6', icon: '#6B7280' };

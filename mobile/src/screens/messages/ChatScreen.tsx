@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { useAuth } from '../../hooks/useAuth';
 import { demoAPI } from '../../mock/api';
 import { colors, spacing, borderRadius, typography } from '../../theme';

@@ -8,10 +8,11 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { Button, Card, Badge, StarRating } from '../../components';
 import { demoAPI } from '../../mock/api';
-import { colors, spacing, borderRadius, typography } from '../../theme';
+import { colors, spacing, borderRadius, typography, categoryColors, defaultCategoryColor } from '../../theme';
+import { categories as categoryList } from '../../mock/data';
 import { HomeStackParamList, ProviderProfile, Review, Service } from '../../types';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'ProviderDetail'>;
@@ -48,7 +49,17 @@ export function ProviderDetailScreen({ route, navigation }: Props) {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header Image Placeholder */}
       <View style={styles.headerImage}>
-        <Icon name="briefcase" size={48} color={colors.primary[300]} />
+        <Icon
+          name={(() => {
+            const catId = provider.categories[0];
+            return categoryList.find(c => c.id === catId)?.icon ?? 'briefcase-outline';
+          })()}
+          size={48}
+          color={(() => {
+            const catId = provider.categories[0];
+            return categoryColors[catId] || defaultCategoryColor;
+          })()}
+        />
       </View>
 
       {/* Provider Info */}
@@ -61,7 +72,7 @@ export function ProviderDetailScreen({ route, navigation }: Props) {
           </Text>
         </View>
         <View style={styles.metaRow}>
-          <Icon name="map-marker" size={14} color={colors.textSecondary} />
+          <Icon name="location-outline" size={14} color={colors.textSecondary} />
           <Text style={styles.metaText}>{provider.city}</Text>
         </View>
         <View style={styles.metaRow}>
@@ -117,7 +128,7 @@ export function ProviderDetailScreen({ route, navigation }: Props) {
               <View style={styles.reviewHeader}>
                 <View style={styles.reviewerInfo}>
                   <View style={styles.reviewerAvatar}>
-                    <Icon name="user" size={14} color={colors.primary[400]} />
+                    <Icon name="person-outline" size={14} color={colors.primary[400]} />
                   </View>
                   <Text style={styles.reviewerName}>{review.customerName}</Text>
                 </View>

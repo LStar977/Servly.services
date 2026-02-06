@@ -8,7 +8,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { useAuth } from '../../hooks/useAuth';
 import { SearchBar, SectionHeader, CategoryIcon, ProviderCard, Card } from '../../components';
 import { demoAPI } from '../../mock/api';
@@ -62,7 +62,7 @@ export function HomeScreen({ navigation }: Props) {
       {/* Demo Mode Banner */}
       <Card style={styles.demoBanner}>
         <View style={styles.demoContent}>
-          <Icon name="rocket" size={20} color={colors.primary[600]} />
+          <Icon name="rocket-outline" size={20} color={colors.primary[600]} />
           <View style={styles.demoTextContainer}>
             <Text style={styles.demoBannerTitle}>Demo Mode Active</Text>
             <Text style={styles.demoBannerSubtitle}>
@@ -84,6 +84,7 @@ export function HomeScreen({ navigation }: Props) {
           <CategoryIcon
             name={item.name}
             icon={item.icon}
+            categoryId={item.id}
             onPress={() =>
               navigation.navigate('CategoryProviders', {
                 categoryId: item.id,
@@ -115,9 +116,9 @@ export function HomeScreen({ navigation }: Props) {
       <SectionHeader title="How It Works" />
       <View style={styles.stepsContainer}>
         {[
-          { icon: 'search', title: 'Search', desc: 'Find the service you need' },
-          { icon: 'calendar', title: 'Book', desc: 'Pick a date and time' },
-          { icon: 'check-circle', title: 'Done', desc: 'Sit back and relax' },
+          { icon: 'search-outline', title: 'Search', desc: 'Find the service you need' },
+          { icon: 'calendar-outline', title: 'Book', desc: 'Pick a date and time' },
+          { icon: 'checkmark-circle-outline', title: 'Done', desc: 'Sit back and relax' },
         ].map((step, i) => (
           <View key={i} style={styles.step}>
             <View style={styles.stepIcon}>
