@@ -57,7 +57,7 @@ export function ProviderDetailScreen({ route, navigation }: Props) {
           size={48}
           color={(() => {
             const catId = provider.categories[0];
-            return categoryColors[catId] || defaultCategoryColor;
+            return (categoryColors[catId] || defaultCategoryColor).icon;
           })()}
         />
       </View>
