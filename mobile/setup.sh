@@ -67,8 +67,14 @@ target 'ServlyMobile' do
 end
 PODFILE
 
-# Step 4: Install CocoaPods
-echo "[4/4] Installing CocoaPods dependencies..."
+# Step 4: Register Ionicons font in Info.plist
+echo "[4/5] Registering Ionicons font in Info.plist..."
+/usr/libexec/PlistBuddy -c "Delete :UIAppFonts" ./ios/ServlyMobile/Info.plist 2>/dev/null || true
+/usr/libexec/PlistBuddy -c "Add :UIAppFonts array" ./ios/ServlyMobile/Info.plist
+/usr/libexec/PlistBuddy -c "Add :UIAppFonts:0 string Ionicons.ttf" ./ios/ServlyMobile/Info.plist
+
+# Step 5: Install CocoaPods
+echo "[5/5] Installing CocoaPods dependencies..."
 cd ios
 pod install
 cd ..
